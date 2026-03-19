@@ -24,8 +24,8 @@ export class Simulation {
 
     // Tunable event parameters
     this.events = {
-      crashSpeedThreshold: 15,    // km/h — min speed diff to trigger crash
-      crashProbability: 15,       // % chance a qualifying overlap becomes a crash
+      crashSpeedThreshold: 25,    // km/h — min speed diff to trigger crash
+      crashProbability: 3,        // % chance a qualifying overlap becomes a crash
       crashClearMin: 8,           // seconds — min time to clear a crash
       crashClearMax: 20,          // seconds — max time to clear a crash
       lateralTolerance: 0.8,      // multiplier on combined width for lateral overlap

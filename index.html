@@ -251,13 +251,13 @@
           <h4>Collision Detection</h4>
           <div class="control-row">
             <label>Crash speed <span class="help-tip">?<span class="tip-text">Minimum speed difference (km/h) between two overlapping vehicles to trigger a crash. Lower = more sensitive. Typical fender-bender threshold: 10–20 km/h.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashSpeedThreshold" min="5" max="50" step="1" value="15">
-            <span class="val evt-val">15 km/h</span>
+            <input type="range" class="evt-slider" data-event="crashSpeedThreshold" min="5" max="50" step="1" value="25">
+            <span class="val evt-val">25 km/h</span>
           </div>
           <div class="control-row">
             <label>Crash chance <span class="help-tip">?<span class="tip-text">Probability that a qualifying overlap actually results in a crash. 100% = every overlap crashes. Lower values simulate near-misses and lucky avoidance.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashProbability" min="0" max="100" step="5" value="15">
-            <span class="val evt-val">15%</span>
+            <input type="range" class="evt-slider" data-event="crashProbability" min="0" max="100" step="1" value="3">
+            <span class="val evt-val">3%</span>
           </div>
           <div class="control-row">
             <label>Lateral tol <span class="help-tip">?<span class="tip-text">Multiplier on combined vehicle width for lateral collision detection. Lower = vehicles must be more directly aligned. Higher = more forgiving overlap zone.</span></span></label>
