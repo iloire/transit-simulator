@@ -17,6 +17,10 @@ function defaultConfig() {
     mixAggressive: 25,
     mixCautious: 15,
     preset: '',
+    // Advanced behavior profiles (null = use code defaults)
+    profileOverrides: null,
+    // Event parameters (null = use code defaults)
+    eventOverrides: null,
   };
 }
 
@@ -264,7 +268,7 @@ export function setupUI(simulation, renderer) {
   setupAdvancedPanel($, config, saveConfig);
 
   // Event parameter sliders
-  setupEventSliders(simulation);
+  setupEventSliders(simulation, config, saveConfig);
 }
 
 function bindSlider(selector, onChange) {
@@ -311,6 +315,25 @@ function setupAdvancedPanel($, config, saveConfig) {
   const toggle = $('#advanced-toggle');
   const body = $('#advanced-body');
   if (!toggle || !body) return;
+
+  // Restore saved profile overrides into PRESETS
+  if (config.profileOverrides) {
+    for (const [profileKey, overrides] of Object.entries(config.profileOverrides)) {
+      if (PRESETS[profileKey]) {
+        Object.assign(PRESETS[profileKey], overrides);
+      }
+    }
+  }
+
+  function persistProfiles() {
+    // Save a snapshot of all profile params
+    const snapshot = {};
+    for (const [key, preset] of Object.entries(PRESETS)) {
+      snapshot[key] = { ...preset };
+    }
+    config.profileOverrides = snapshot;
+    saveConfig(config);
+  }
 
   // Toggle open/close
   toggle.addEventListener('click', () => {
@@ -366,7 +389,7 @@ function setupAdvancedPanel($, config, saveConfig) {
     });
   });
 
-  // Slider changes — write back to PRESETS (affects newly spawned vehicles)
+  // Slider changes — write back to PRESETS and persist
   sliders.forEach(sl => {
     sl.addEventListener('input', () => {
       const param = sl.dataset.param;
@@ -375,6 +398,7 @@ function setupAdvancedPanel($, config, saveConfig) {
       const fmt = paramUnits[param];
       const valEl = sl.nextElementSibling;
       if (valEl) valEl.textContent = val.toFixed(fmt.decimals) + fmt.suffix;
+      persistProfiles();
     });
   });
 
@@ -383,6 +407,7 @@ function setupAdvancedPanel($, config, saveConfig) {
     sel.addEventListener('change', () => {
       const param = sel.dataset.param;
       PRESETS[activeProfile][param] = sel.value || null;
+      persistProfiles();
     });
   });
 
@@ -391,7 +416,7 @@ function setupAdvancedPanel($, config, saveConfig) {
 }
 
 /** Wire up the Accidents & Events panel toggle and sliders */
-function setupEventSliders(simulation) {
+function setupEventSliders(simulation, config, saveConfig) {
   const toggle = document.querySelector('#events-toggle');
   const body = document.querySelector('#events-body');
   if (toggle && body) {
@@ -399,6 +424,11 @@ function setupEventSliders(simulation) {
       const open = body.classList.toggle('open');
       toggle.textContent = open ? 'Accidents & Events ▴' : 'Accidents & Events ▾';
     });
+  }
+
+  // Restore saved event overrides
+  if (config.eventOverrides) {
+    Object.assign(simulation.events, config.eventOverrides);
   }
 
   const evtSliders = document.querySelectorAll('.evt-slider');
@@ -417,7 +447,7 @@ function setupEventSliders(simulation) {
   evtSliders.forEach(sl => {
     const key = sl.dataset.event;
 
-    // Initialize slider from simulation defaults
+    // Initialize slider from (possibly restored) simulation values
     sl.value = simulation.events[key];
     const fmt = evtUnits[key];
     const valEl = sl.nextElementSibling;
@@ -431,6 +461,9 @@ function setupEventSliders(simulation) {
       if (valEl && fmt) {
         valEl.textContent = val.toFixed(fmt.decimals) + fmt.suffix;
       }
+      // Persist
+      config.eventOverrides = { ...simulation.events };
+      saveConfig(config);
     });
   });
 }
