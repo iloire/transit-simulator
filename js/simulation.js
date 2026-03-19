@@ -176,15 +176,14 @@ export class Simulation {
       }
     }
 
-    // IDM update — also consider "shadow leaders" in the left lane
-    // to prevent right-side overtaking when it's not allowed
+    // IDM update — also compute left-lane speed limit to prevent right-overtaking
     for (const v of this.vehicles) {
       const leader = v._findLeader(v.effectiveLane, getLaneVehicles);
-      let shadowLeader = null;
+      let leftLaneSpeed = null;
       if (!this.events.rightOvertakeAllowed && v.effectiveLane > 0 && !v.crashed) {
-        shadowLeader = v._findLeader(v.effectiveLane - 1, getLaneVehicles);
+        leftLaneSpeed = this._getNearbySpeeds(v, v.effectiveLane - 1, getLaneVehicles);
       }
-      v.update(dt, leader, shadowLeader);
+      v.update(dt, leader, leftLaneSpeed);
     }
 
     // Collision detection
@@ -295,6 +294,24 @@ export class Simulation {
 
     // Update active encounters — remove pairs that are no longer overlapping
     this._activeEncounters = currentEncounters;
+  }
+
+  /** Get the minimum speed of nearby vehicles in a given lane (within ~60m) */
+  _getNearbySpeeds(vehicle, lane, getLaneVehicles) {
+    const vehicles = getLaneVehicles(lane);
+    let minSpeed = Infinity;
+    let found = false;
+    for (const v of vehicles) {
+      if (v.crashed) continue;
+      // Check vehicles roughly alongside us (within ~60m ahead or behind)
+      const distAhead = this.road.distAhead(vehicle.x, v.x);
+      const absDist = Math.abs(distAhead);
+      if (absDist < 60) {
+        minSpeed = Math.min(minSpeed, v.v);
+        found = true;
+      }
+    }
+    return found ? minSpeed : null;
   }
 
   _processBreakdowns(dt) {
