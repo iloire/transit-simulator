@@ -349,7 +349,8 @@ select option {
     border-bottom: 1px solid var(--border);
   }
 
-  .advanced-grid {
+  .advanced-grid,
+  .events-grid {
     grid-template-columns: 1fr !important;
   }
 }
@@ -425,7 +426,7 @@ select option {
 
 .advanced-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0 24px;
 }
 
@@ -450,6 +451,12 @@ select option {
 .adv-val {
   min-width: 40px !important;
   font-size: 11px !important;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0 24px;
 }
 
 .adv-select {

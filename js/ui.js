@@ -388,8 +388,17 @@ function setupAdvancedPanel($, config, saveConfig) {
   loadProfileToUI(activeProfile);
 }
 
-/** Wire up the Accidents & Events sliders to simulation.events */
+/** Wire up the Accidents & Events panel toggle and sliders */
 function setupEventSliders(simulation) {
+  const toggle = document.querySelector('#events-toggle');
+  const body = document.querySelector('#events-body');
+  if (toggle && body) {
+    toggle.addEventListener('click', () => {
+      const open = body.classList.toggle('open');
+      toggle.textContent = open ? 'Accidents & Events ▴' : 'Accidents & Events ▾';
+    });
+  }
+
   const evtSliders = document.querySelectorAll('.evt-slider');
 
   const evtUnits = {
