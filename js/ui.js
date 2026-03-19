@@ -402,7 +402,7 @@ function setupEventSliders(simulation) {
   const evtSliders = document.querySelectorAll('.evt-slider');
 
   const evtUnits = {
-    crashSpeedThreshold: { suffix: ' m/s', decimals: 1 },
+    crashSpeedThreshold: { suffix: ' km/h', decimals: 0 },
     crashProbability:    { suffix: '%', decimals: 0 },
     crashClearMin:       { suffix: 's', decimals: 0 },
     crashClearMax:       { suffix: 's', decimals: 0 },

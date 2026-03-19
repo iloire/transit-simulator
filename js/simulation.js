@@ -24,7 +24,7 @@ export class Simulation {
 
     // Tunable event parameters
     this.events = {
-      crashSpeedThreshold: 4,     // m/s — min speed diff to trigger crash
+      crashSpeedThreshold: 15,    // km/h — min speed diff to trigger crash
       crashProbability: 80,       // % chance a qualifying overlap becomes a crash
       crashClearMin: 8,           // seconds — min time to clear a crash
       crashClearMax: 20,          // seconds — max time to clear a crash
@@ -240,7 +240,7 @@ export class Simulation {
 
         // Speed differential check
         const speedDiff = Math.abs(a.v - b.v);
-        if (speedDiff < crashSpeedThreshold) continue;
+        if (speedDiff < crashSpeedThreshold / 3.6) continue;
 
         // Probability roll
         if (Math.random() * 100 > crashProbability) continue;

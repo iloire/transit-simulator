@@ -250,9 +250,9 @@
         <div class="param-group">
           <h4>Collision Detection</h4>
           <div class="control-row">
-            <label>Crash speed <span class="help-tip">?<span class="tip-text">Minimum speed difference (m/s) between two overlapping vehicles to trigger a crash. Lower = more sensitive. 4 m/s ≈ 15 km/h.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashSpeedThreshold" min="1" max="15" step="0.5" value="4">
-            <span class="val evt-val">4 m/s</span>
+            <label>Crash speed <span class="help-tip">?<span class="tip-text">Minimum speed difference (km/h) between two overlapping vehicles to trigger a crash. Lower = more sensitive. Typical fender-bender threshold: 10–20 km/h.</span></span></label>
+            <input type="range" class="evt-slider" data-event="crashSpeedThreshold" min="5" max="50" step="1" value="15">
+            <span class="val evt-val">15 km/h</span>
           </div>
           <div class="control-row">
             <label>Crash chance <span class="help-tip">?<span class="tip-text">Probability that a qualifying overlap actually results in a crash. 100% = every overlap crashes. Lower values simulate near-misses and lucky avoidance.</span></span></label>
