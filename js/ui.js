@@ -21,6 +21,7 @@ function defaultConfig() {
     profileOverrides: null,
     // Event parameters (null = use code defaults)
     eventOverrides: null,
+    simSpeed: 10, // slider value (divide by 10 for multiplier)
   };
 }
 
@@ -252,13 +253,20 @@ export function setupUI(simulation, renderer) {
   const speedSlider = $('#sim-speed');
   const speedVal = $('#sim-speed-val');
   if (speedSlider) {
+    // Restore persisted speed
+    speedSlider.value = config.simSpeed;
+    window.__simSpeed = config.simSpeed / 10;
+    if (speedVal) speedVal.textContent = (config.simSpeed / 10).toFixed(1) + 'x';
+
     speedSlider.addEventListener('input', () => {
       const v = parseFloat(speedSlider.value);
       window.__simSpeed = v / 10;
       if (speedVal) speedVal.textContent = (v / 10).toFixed(1) + 'x';
+      set('simSpeed', v);
     });
+  } else {
+    window.__simSpeed = config.simSpeed / 10;
   }
-  window.__simSpeed = 1;
 
   // Stats update
   setInterval(() => {
