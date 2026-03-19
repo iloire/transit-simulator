@@ -198,19 +198,21 @@ export class Simulation {
         const b = this.vehicles[j];
         if (b.crashed) continue;
 
-        // Must be in overlapping lanes
-        const sameLane = a.effectiveLane === b.effectiveLane
-          || (a.lane !== a.targetLane && (a.lane === b.effectiveLane || a.targetLane === b.effectiveLane))
-          || (b.lane !== b.targetLane && (b.lane === a.effectiveLane || b.targetLane === a.effectiveLane));
+        // Check lateral overlap using actual Y positions (not just lane index)
+        const ay = a.effectiveY;
+        const by = b.effectiveY;
+        const lateralDist = Math.abs(ay - by);
+        const lateralThreshold = (a.width + b.width) / 2 * 0.8;
+        if (lateralDist > lateralThreshold) continue;
 
-        if (!sameLane) continue;
-
+        // Longitudinal overlap
         const dist = Math.abs(this.road.distAhead(a.x, b.x));
-        const minDist = (a.length + b.length) / 2 * 0.7;
+        const longThreshold = (a.length + b.length) / 2 * 0.4;
 
-        if (dist < minDist) {
+        if (dist < longThreshold) {
+          // Only crash if significant speed difference (> 15 km/h)
           const speedDiff = Math.abs(a.v - b.v);
-          if (speedDiff > 2) {
+          if (speedDiff > 4) {
             a.crashed = true;
             b.crashed = true;
             a.v = 0;
