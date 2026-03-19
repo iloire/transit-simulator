@@ -30,19 +30,19 @@
       <h3>Road</h3>
 
       <div class="control-row">
-        <label>Lanes</label>
+        <label>Lanes <span class="help-tip">?<span class="tip-text">Number of parallel lanes on the road. More lanes allow more overtaking but increase complexity. Resets the simulation.</span></span></label>
         <input type="range" id="lanes" min="2" max="6" value="3" step="1">
         <span id="lanes-val" class="val">3</span>
       </div>
 
       <div class="control-row">
-        <label>Speed limit</label>
+        <label>Speed limit <span class="help-tip">?<span class="tip-text">Maximum legal speed on the road. Cautious drivers stay below this; aggressive drivers exceed it by up to 20%.</span></span></label>
         <input type="range" id="speed-limit" min="40" max="140" value="80" step="5" data-suffix=" km/h">
         <span id="speed-limit-val" class="val">80 km/h</span>
       </div>
 
       <div class="control-row">
-        <label>Spawn rate</label>
+        <label>Spawn rate <span class="help-tip">?<span class="tip-text">How frequently new vehicles enter the road. Higher values increase traffic density and congestion. Too high may cause spawn-point jams.</span></span></label>
         <input type="range" id="spawn-rate" min="1" max="40" value="15" step="1">
         <span id="spawn-rate-val" class="val">15</span>
       </div>
@@ -50,19 +50,19 @@
       <h3 style="margin-top:12px">Vehicles</h3>
 
       <div class="control-row">
-        <label>Cars</label>
+        <label>Cars <span class="help-tip">?<span class="tip-text">Standard vehicles. Medium size, normal acceleration. The baseline that other types are measured against.</span></span></label>
         <input type="range" id="mix-cars" min="0" max="100" value="60" data-suffix="%">
         <span id="mix-cars-val" class="val">60%</span>
       </div>
 
       <div class="control-row">
-        <label>Trucks</label>
+        <label>Trucks <span class="help-tip">?<span class="tip-text">Large, slow vehicles. Half the acceleration and 75% top speed of cars. Create speed differentials that force lane changes and can trigger jams.</span></span></label>
         <input type="range" id="mix-trucks" min="0" max="100" value="25" data-suffix="%">
         <span id="mix-trucks-val" class="val">25%</span>
       </div>
 
       <div class="control-row">
-        <label>Motorbikes</label>
+        <label>Motorbikes <span class="help-tip">?<span class="tip-text">Small, fast vehicles with 60% more acceleration and higher top speed. Their small size makes them harder to see and more vulnerable in collisions.</span></span></label>
         <input type="range" id="mix-bikes" min="0" max="100" value="15" data-suffix="%">
         <span id="mix-bikes-val" class="val">15%</span>
       </div>
@@ -73,25 +73,25 @@
       <h3>Driver Behavior Mix</h3>
 
       <div class="control-row">
-        <label>Optimal</label>
+        <label>Optimal <span class="help-tip">?<span class="tip-text">Ideal drivers. Use the best available lane, maintain safe following distance (1.2s), and change lanes smoothly when beneficial. Produce the best traffic flow.</span></span></label>
         <input type="range" id="mix-optimal" min="0" max="100" value="40">
         <span id="mix-optimal-val" class="val">40%</span>
       </div>
 
       <div class="control-row">
-        <label>Center hog</label>
+        <label>Center hog <span class="help-tip">?<span class="tip-text">Stick to the center lane and rarely move. Force faster drivers to overtake on the right, increasing accident risk. High values create frozen center lanes and phantom jams.</span></span></label>
         <input type="range" id="mix-centerhog" min="0" max="100" value="20">
         <span id="mix-centerhog-val" class="val">20%</span>
       </div>
 
       <div class="control-row">
-        <label>Aggressive</label>
+        <label>Aggressive <span class="help-tip">?<span class="tip-text">Tailgaters. Very short following distance (0.5s), 20% over the speed limit, constant lane weaving with zero politeness. Highest crash rate by far.</span></span></label>
         <input type="range" id="mix-aggressive" min="0" max="100" value="25">
         <span id="mix-aggressive-val" class="val">25%</span>
       </div>
 
       <div class="control-row">
-        <label>Cautious</label>
+        <label>Cautious <span class="help-tip">?<span class="tip-text">Very safe but slow. Large following gap (2.5s), 15% under the speed limit, prefer the right lane. Too many cautious drivers reduce throughput and frustrate faster traffic.</span></span></label>
         <input type="range" id="mix-cautious" min="0" max="100" value="15">
         <span id="mix-cautious-val" class="val">15%</span>
       </div>
@@ -110,27 +110,27 @@
 
       <div class="stat-grid">
         <div class="stat-item success">
-          <div class="stat-label">Flow Rate</div>
+          <div class="stat-label">Flow Rate <span class="help-tip">?<span class="tip-text">Vehicles passing a fixed point per hour. A healthy highway handles 1,800–2,200 veh/hr per lane. Drops sharply during jams.</span></span></div>
           <div class="stat-value" id="stat-flow">—</div>
         </div>
         <div class="stat-item info">
-          <div class="stat-label">Avg Speed</div>
+          <div class="stat-label">Avg Speed <span class="help-tip">?<span class="tip-text">Mean speed of all moving (non-crashed) vehicles. Compare this to the speed limit to gauge congestion severity.</span></span></div>
           <div class="stat-value" id="stat-speed">—</div>
         </div>
         <div class="stat-item danger">
-          <div class="stat-label">Total Crashes</div>
+          <div class="stat-label">Total Crashes <span class="help-tip">?<span class="tip-text">Cumulative collision count since the last reset. Collisions happen when vehicles overlap with a speed differential above 2 m/s.</span></span></div>
           <div class="stat-value" id="stat-accidents">0</div>
         </div>
         <div class="stat-item danger">
-          <div class="stat-label">Active Crashes</div>
+          <div class="stat-label">Active Crashes <span class="help-tip">?<span class="tip-text">Vehicles currently stopped from a crash, blocking their lane. Cleared automatically after 8–20 seconds, causing upstream jams in the meantime.</span></span></div>
           <div class="stat-value" id="stat-active-crashes">0</div>
         </div>
         <div class="stat-item">
-          <div class="stat-label">Vehicles</div>
+          <div class="stat-label">Vehicles <span class="help-tip">?<span class="tip-text">Total number of vehicles currently on the road, including crashed ones. Capped at 250 for performance.</span></span></div>
           <div class="stat-value" id="stat-vehicles">—</div>
         </div>
         <div class="stat-item">
-          <div class="stat-label">Density</div>
+          <div class="stat-label">Density <span class="help-tip">?<span class="tip-text">Vehicles per kilometer of road. Above ~40 veh/km, traffic transitions from free-flow to congested. Watch for phantom waves at high density.</span></span></div>
           <div class="stat-value" id="stat-density">—</div>
         </div>
         <div class="stat-item" style="grid-column: span 2">
