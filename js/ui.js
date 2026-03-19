@@ -222,6 +222,8 @@ export function setupUI(simulation, renderer) {
       syncSlider('#mix-centerhog', p.centerHog, '%');
       syncSlider('#mix-aggressive', p.aggressive, '%');
       syncSlider('#mix-cautious', p.cautious, '%');
+
+      simulation.reset();
     });
   }
 
