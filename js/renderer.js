@@ -3,11 +3,12 @@ import { lerp } from './utils.js';
 const METERS_TO_PX = 6; // 1 meter = 6 pixels
 
 export class Renderer {
-  constructor(canvas) {
+  constructor(canvas, { interactive = true } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.camera = { x: 0, zoom: 1 };
     this.time = 0;
+    this.interactive = interactive;
 
     // Colors
     this.colors = {
@@ -21,29 +22,40 @@ export class Renderer {
     };
 
     this._resize();
-    window.addEventListener('resize', () => this._resize());
+    this._resizeHandler = () => this._resize();
+    window.addEventListener('resize', this._resizeHandler);
 
-    // Drag to pan
-    this._dragging = false;
-    this._dragStartX = 0;
-    canvas.addEventListener('mousedown', (e) => {
-      this._dragging = true;
-      this._dragStartX = e.clientX;
-    });
-    window.addEventListener('mousemove', (e) => {
-      if (!this._dragging) return;
-      const dx = e.clientX - this._dragStartX;
-      this.camera.x -= dx / (METERS_TO_PX * this.camera.zoom);
-      this._dragStartX = e.clientX;
-    });
-    window.addEventListener('mouseup', () => { this._dragging = false; });
+    if (interactive) {
+      // Drag to pan
+      this._dragging = false;
+      this._dragStartX = 0;
+      canvas.addEventListener('mousedown', (e) => {
+        this._dragging = true;
+        this._dragStartX = e.clientX;
+      });
+      this._moveHandler = (e) => {
+        if (!this._dragging) return;
+        const dx = e.clientX - this._dragStartX;
+        this.camera.x -= dx / (METERS_TO_PX * this.camera.zoom);
+        this._dragStartX = e.clientX;
+      };
+      this._upHandler = () => { this._dragging = false; };
+      window.addEventListener('mousemove', this._moveHandler);
+      window.addEventListener('mouseup', this._upHandler);
 
-    // Zoom with wheel
-    canvas.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      this.camera.zoom = Math.max(0.3, Math.min(3, this.camera.zoom * factor));
-    }, { passive: false });
+      // Zoom with wheel
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        this.camera.zoom = Math.max(0.3, Math.min(3, this.camera.zoom * factor));
+      }, { passive: false });
+    }
+  }
+
+  destroy() {
+    window.removeEventListener('resize', this._resizeHandler);
+    if (this._moveHandler) window.removeEventListener('mousemove', this._moveHandler);
+    if (this._upHandler) window.removeEventListener('mouseup', this._upHandler);
   }
 
   _resize() {
@@ -190,6 +202,53 @@ export class Renderer {
       ctx.fill();
     }
 
+    ctx.restore();
+  }
+
+  /** Auto-fit camera to show the full road */
+  autoFit(road) {
+    this.camera.x = road.roadLength / 2;
+    const roadPixels = road.roadLength * METERS_TO_PX;
+    this.camera.zoom = Math.min(this.w / roadPixels, 1.5);
+  }
+
+  /** Draw a label and stats overlay on top of the canvas */
+  renderOverlay(label, stats) {
+    const { ctx } = this;
+    const W = this.w;
+
+    // Country label — top left
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 15, 26, 0.7)';
+    ctx.fillRect(0, 0, W, 26);
+    ctx.font = '600 13px "IBM Plex Mono", monospace';
+    ctx.fillStyle = '#e2c044';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, 8, 13);
+
+    // Stats bar — bottom
+    const barH = 22;
+    const barY = this.h - barH;
+    ctx.fillStyle = 'rgba(15, 15, 26, 0.75)';
+    ctx.fillRect(0, barY, W, barH);
+
+    ctx.font = '11px "IBM Plex Mono", monospace';
+    ctx.textBaseline = 'middle';
+    const y = barY + barH / 2;
+    const items = [
+      { label: 'Flow', value: Math.round(stats.flowRate).toLocaleString(), color: '#2ecc71' },
+      { label: 'Speed', value: Math.round(stats.avgSpeed) + '', color: '#3498db' },
+      { label: 'Crashes', value: stats.totalAccidents + '', color: '#ff6b6b' },
+    ];
+    const spacing = W / items.length;
+    items.forEach((item, i) => {
+      const x = spacing * i + 8;
+      ctx.fillStyle = '#8888a0';
+      ctx.fillText(item.label, x, y);
+      const labelW = ctx.measureText(item.label + ' ').width;
+      ctx.fillStyle = item.color;
+      ctx.fillText(item.value, x + labelW, y);
+    });
     ctx.restore();
   }
 }

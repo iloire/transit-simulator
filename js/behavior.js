@@ -115,7 +115,8 @@ export function createBehavior(presetKey, vehicleType, speedLimit, laneCount = 3
     // On 5 lanes: can use lanes 3-4, aggressive can use 2-4
     const rightLanes = Math.max(2, Math.ceil(laneCount / 2));
     const minAllowedLane = laneCount - rightLanes;
-    maxLane = presetKey === 'aggressive' ? Math.max(0, minAllowedLane - 1) : minAllowedLane;
+    // Aggressive trucks get one extra lane left, but never the leftmost (fast lane)
+    maxLane = presetKey === 'aggressive' ? Math.max(1, minAllowedLane - 1) : minAllowedLane;
   }
 
   return {

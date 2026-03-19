@@ -2,6 +2,19 @@ import { PRESETS } from './behavior.js';
 
 const STORAGE_KEY = 'transit-sim-config';
 
+export const COUNTRY_PRESETS = {
+  germany:     { name: 'Germany',     optimal: 55, centerHog: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
+  uk:          { name: 'UK',          optimal: 40, centerHog: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+  usa:         { name: 'USA',         optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
+  italy:       { name: 'Italy',       optimal: 20, centerHog: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
+  india:       { name: 'India',       optimal: 10, centerHog: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
+  japan:       { name: 'Japan',       optimal: 50, centerHog: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
+  france:      { name: 'France',      optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
+  brazil:      { name: 'Brazil',      optimal: 15, centerHog: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
+  netherlands: { name: 'Netherlands', optimal: 55, centerHog: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+  saudi:       { name: 'Saudi Arabia',optimal: 15, centerHog: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
+};
+
 /** All configurable settings with their defaults */
 function defaultConfig() {
   return {
@@ -188,26 +201,12 @@ export function setupUI(simulation, renderer) {
     { sel: '#mix-bikes', apply: (v) => { config.mixBikes = v; simulation.vehicleMix.motorbike = v; } },
   ]);
 
-  // Country presets — only affect driver behavior mix
-  const countryPresets = {
-    germany:     { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
-    uk:          { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-    usa:         { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
-    italy:       { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
-    india:       { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
-    japan:       { optimal: 50, centerHog: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
-    france:      { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
-    brazil:      { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
-    netherlands: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-    saudi:       { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
-  };
-
   const presetSelect = $('#country-preset');
   if (presetSelect) {
     presetSelect.addEventListener('change', () => {
       const key = presetSelect.value;
       if (!key) return;
-      const p = countryPresets[key];
+      const p = COUNTRY_PRESETS[key];
       if (!p) return;
 
       // Update config & simulation — behavior mix only
