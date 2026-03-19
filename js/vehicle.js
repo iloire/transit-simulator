@@ -195,7 +195,7 @@ export class Vehicle {
     return this.laneProgress < 0.5 ? this.lane : this.targetLane;
   }
 
-  update(dt, leader) {
+  update(dt, leader, shadowLeader = null) {
     if (this.crashed) {
       this.crashTimer += dt;
       this.v = 0;
@@ -205,6 +205,20 @@ export class Vehicle {
 
     // Compute IDM acceleration
     this.a = clamp(this.computeIDM(leader), -8, this.behavior.aMax);
+
+    // Shadow leader: vehicle in the lane to our left that we shouldn't overtake
+    // Most drivers (scaled by politeness) slow down to avoid right-side overtaking
+    // Aggressive drivers (politeness ~0) ignore this and blow past
+    if (shadowLeader && !shadowLeader.crashed && shadowLeader.v < this.v) {
+      const shadowA = this.computeIDM(shadowLeader);
+      // Blend: polite drivers follow shadow leader fully, only very aggressive ignore
+      // politeness 0.0 → weight 0.0 (ignore), politeness 0.1 → 0.5, politeness 0.3+ → ~1.0
+      const weight = Math.min(1, this.behavior.politeness * 4);
+      if (weight > 0.05) {
+        const blended = this.a * (1 - weight) + shadowA * weight;
+        this.a = Math.min(this.a, blended);
+      }
+    }
 
     // Update velocity and position
     this.v = clamp(this.v + this.a * dt, 0, this.behavior.v0 * 1.3);

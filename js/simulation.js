@@ -176,10 +176,15 @@ export class Simulation {
       }
     }
 
-    // IDM update
+    // IDM update — also consider "shadow leaders" in the left lane
+    // to prevent right-side overtaking when it's not allowed
     for (const v of this.vehicles) {
       const leader = v._findLeader(v.effectiveLane, getLaneVehicles);
-      v.update(dt, leader);
+      let shadowLeader = null;
+      if (!this.events.rightOvertakeAllowed && v.effectiveLane > 0 && !v.crashed) {
+        shadowLeader = v._findLeader(v.effectiveLane - 1, getLaneVehicles);
+      }
+      v.update(dt, leader, shadowLeader);
     }
 
     // Collision detection
