@@ -94,14 +94,34 @@ export const VEHICLE_TYPES = {
   },
 };
 
-export function createBehavior(presetKey, vehicleType, speedLimit) {
+/**
+ * @param {number} laneCount - total lanes on the road, used for truck lane restriction
+ * @param {number} truckSpeedLimit - separate speed limit for trucks (m/s), defaults to 80 km/h
+ */
+export function createBehavior(presetKey, vehicleType, speedLimit, laneCount = 3, truckSpeedLimit = 22.2) {
   const preset = PRESETS[presetKey];
   const vType = VEHICLE_TYPES[vehicleType];
+
+  // Trucks use their own (lower) speed limit
+  const effectiveSpeedLimit = vehicleType === 'truck' ? truckSpeedLimit : speedLimit;
+
+  // Truck lane restriction: can only use rightmost lanes
+  // Aggressive trucks may use one more lane to the left
+  let maxLane = null; // null = no restriction
+  if (vehicleType === 'truck' && laneCount > 2) {
+    // Trucks restricted to right half of road (lane 0 = leftmost)
+    // On 3 lanes: can use lanes 1-2 (right two), aggressive can use 0-2
+    // On 4 lanes: can use lanes 2-3, aggressive can use 1-3
+    // On 5 lanes: can use lanes 3-4, aggressive can use 2-4
+    const rightLanes = Math.max(2, Math.ceil(laneCount / 2));
+    const minAllowedLane = laneCount - rightLanes;
+    maxLane = presetKey === 'aggressive' ? Math.max(0, minAllowedLane - 1) : minAllowedLane;
+  }
 
   return {
     presetKey,
     vehicleType,
-    v0: speedLimit * preset.v0Factor * vType.v0Mul,
+    v0: effectiveSpeedLimit * preset.v0Factor * vType.v0Mul,
     T: preset.T,
     aMax: preset.aMax * vType.aMaxMul,
     b: preset.b,
@@ -115,5 +135,6 @@ export function createBehavior(presetKey, vehicleType, speedLimit) {
     length: vType.length,
     width: vType.width,
     canLaneSplit: vType.canLaneSplit,
+    maxLane,  // minimum lane index truck can use (null = no restriction)
   };
 }

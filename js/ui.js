@@ -7,6 +7,7 @@ function defaultConfig() {
   return {
     lanes: 3,
     speedLimit: 80,
+    truckSpeedLimit: 80,
     spawnRate: 15,
     mixCars: 60,
     mixTrucks: 25,
@@ -38,6 +39,7 @@ function applyConfig(config, simulation) {
   // Road
   simulation.road.laneCount = config.lanes;
   simulation.road.speedLimit = config.speedLimit / 3.6;
+  simulation.truckSpeedLimit = config.truckSpeedLimit / 3.6;
   simulation.spawnRate = config.spawnRate / 10;
 
   // Behavior mix
@@ -54,6 +56,7 @@ function applyConfig(config, simulation) {
   // Sync all DOM elements
   syncSlider('#lanes', config.lanes);
   syncSlider('#speed-limit', config.speedLimit, ' km/h');
+  syncSlider('#truck-speed-limit', config.truckSpeedLimit, ' km/h');
   syncSlider('#spawn-rate', config.spawnRate);
   syncSlider('#mix-cars', config.mixCars, '%');
   syncSlider('#mix-trucks', config.mixTrucks, '%');
@@ -95,6 +98,11 @@ export function setupUI(simulation, renderer) {
     set('preset', '');
     if ($('#country-preset')) $('#country-preset').value = '';
     simulation.road.speedLimit = v / 3.6;
+  });
+
+  bindSlider('#truck-speed-limit', (v) => {
+    set('truckSpeedLimit', v);
+    simulation.truckSpeedLimit = v / 3.6;
   });
 
   bindSlider('#spawn-rate', (v) => {

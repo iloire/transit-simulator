@@ -67,7 +67,8 @@ export class Vehicle {
     let bestIncentive = aThreshold;
 
     const candidates = [];
-    if (currentLane > 0) candidates.push(currentLane - 1);
+    const minLane = this.behavior.maxLane ?? 0; // truck lane restriction
+    if (currentLane > minLane) candidates.push(currentLane - 1);
     if (currentLane < this.road.laneCount - 1) candidates.push(currentLane + 1);
 
     // Current acceleration with current leader

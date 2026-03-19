@@ -19,6 +19,9 @@ export class Simulation {
     // Vehicles per second spawn rate
     this.spawnRate = config.spawnRate ?? 1.5;
 
+    // Separate truck speed limit (m/s), default 80 km/h
+    this.truckSpeedLimit = config.truckSpeedLimit ?? (80 / 3.6);
+
     // Behavior mix (weights, will be normalized)
     this.behaviorMix = {
       optimal: 40,
@@ -78,7 +81,16 @@ export class Simulation {
   _spawnAt(x, lane) {
     const behaviorKey = this._pickBehavior();
     const vehicleType = this._pickVehicleType();
-    const behavior = createBehavior(behaviorKey, vehicleType, this.road.speedLimit);
+    const behavior = createBehavior(
+      behaviorKey, vehicleType, this.road.speedLimit,
+      this.road.laneCount, this.truckSpeedLimit
+    );
+
+    // Trucks must spawn in allowed lanes
+    if (behavior.maxLane !== null && lane < behavior.maxLane) {
+      lane = behavior.maxLane;
+    }
+
     const v = new Vehicle(x, lane, behavior, this.road);
     this.vehicles.push(v);
     return v;

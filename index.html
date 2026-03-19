@@ -24,6 +24,7 @@
     <div class="canvas-hint">Drag to pan · Scroll to zoom</div>
   </div>
 
+  <div class="bottom-section">
   <div class="controls">
     <!-- Column 1: Road & Vehicle Config -->
     <div class="control-section">
@@ -39,6 +40,12 @@
         <label>Speed limit <span class="help-tip">?<span class="tip-text">Maximum legal speed on the road. Cautious drivers stay below this; aggressive drivers exceed it by up to 20%.</span></span></label>
         <input type="range" id="speed-limit" min="40" max="140" value="80" step="5" data-suffix=" km/h">
         <span id="speed-limit-val" class="val">80 km/h</span>
+      </div>
+
+      <div class="control-row">
+        <label>Truck limit <span class="help-tip">?<span class="tip-text">Separate speed limit for trucks, typically 10–20 km/h below the car limit. Trucks are also restricted to right lanes unless aggressive.</span></span></label>
+        <input type="range" id="truck-speed-limit" min="40" max="120" value="80" step="5" data-suffix=" km/h">
+        <span id="truck-speed-limit-val" class="val">80 km/h</span>
       </div>
 
       <div class="control-row">
@@ -159,6 +166,7 @@
   </div>
 
   <!-- Advanced behavior panel -->
+
   <div class="advanced-panel" id="advanced-panel">
     <button class="advanced-toggle" id="advanced-toggle">Advanced Behavior Tuning ▾</button>
     <div class="advanced-body" id="advanced-body">
@@ -233,6 +241,7 @@
       </div>
     </div>
   </div>
+  </div><!-- end bottom-section -->
 
   <script type="module" src="js/main.js"></script>
   <script>

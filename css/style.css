@@ -33,6 +33,13 @@ body {
   flex-direction: column;
 }
 
+/* Scrollable bottom section (controls + advanced panel) */
+.bottom-section {
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+
 /* Header */
 header {
   display: flex;
