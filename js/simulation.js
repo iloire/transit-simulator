@@ -22,6 +22,18 @@ export class Simulation {
     // Separate truck speed limit (m/s), default 80 km/h
     this.truckSpeedLimit = config.truckSpeedLimit ?? (80 / 3.6);
 
+    // Tunable event parameters
+    this.events = {
+      crashSpeedThreshold: 4,     // m/s — min speed diff to trigger crash
+      crashProbability: 80,       // % chance a qualifying overlap becomes a crash
+      crashClearMin: 8,           // seconds — min time to clear a crash
+      crashClearMax: 20,          // seconds — max time to clear a crash
+      lateralTolerance: 0.8,      // multiplier on combined width for lateral overlap
+      longitudinalTolerance: 0.4, // multiplier on combined length for longitudinal overlap
+      reactionJitter: 10,         // % variation in driver reaction time (+/-)
+      breakdownChance: 0,         // per-vehicle-per-minute chance of random breakdown (%)
+    };
+
     // Behavior mix (weights, will be normalized)
     this.behaviorMix = {
       optimal: 40,
@@ -91,7 +103,8 @@ export class Simulation {
       lane = behavior.maxLane;
     }
 
-    const v = new Vehicle(x, lane, behavior, this.road);
+    const jitterPct = this.events.reactionJitter / 100;
+    const v = new Vehicle(x, lane, behavior, this.road, jitterPct);
     this.vehicles.push(v);
     return v;
   }
@@ -168,6 +181,9 @@ export class Simulation {
     // Collision detection
     this._detectCollisions();
 
+    // Random breakdowns
+    this._processBreakdowns(dt);
+
     // Remove cleared crashes
     this.vehicles = this.vehicles.filter(v => {
       if (v.crashed && v.crashTimer > v.crashDuration) return false;
@@ -202,6 +218,8 @@ export class Simulation {
   }
 
   _detectCollisions() {
+    const { crashSpeedThreshold, crashProbability, lateralTolerance, longitudinalTolerance } = this.events;
+
     for (let i = 0; i < this.vehicles.length; i++) {
       const a = this.vehicles[i];
       if (a.crashed) continue;
@@ -210,28 +228,45 @@ export class Simulation {
         const b = this.vehicles[j];
         if (b.crashed) continue;
 
-        // Check lateral overlap using actual Y positions (not just lane index)
-        const ay = a.effectiveY;
-        const by = b.effectiveY;
-        const lateralDist = Math.abs(ay - by);
-        const lateralThreshold = (a.width + b.width) / 2 * 0.8;
+        // Check lateral overlap using actual Y positions
+        const lateralDist = Math.abs(a.effectiveY - b.effectiveY);
+        const lateralThreshold = (a.width + b.width) / 2 * lateralTolerance;
         if (lateralDist > lateralThreshold) continue;
 
         // Longitudinal overlap
         const dist = Math.abs(this.road.distAhead(a.x, b.x));
-        const longThreshold = (a.length + b.length) / 2 * 0.4;
+        const longThreshold = (a.length + b.length) / 2 * longitudinalTolerance;
+        if (dist > longThreshold) continue;
 
-        if (dist < longThreshold) {
-          // Only crash if significant speed difference (> 15 km/h)
-          const speedDiff = Math.abs(a.v - b.v);
-          if (speedDiff > 4) {
-            a.crashed = true;
-            b.crashed = true;
-            a.v = 0;
-            b.v = 0;
-            this.stats.totalAccidents++;
-          }
-        }
+        // Speed differential check
+        const speedDiff = Math.abs(a.v - b.v);
+        if (speedDiff < crashSpeedThreshold) continue;
+
+        // Probability roll
+        if (Math.random() * 100 > crashProbability) continue;
+
+        a.crashed = true;
+        b.crashed = true;
+        a.v = 0;
+        b.v = 0;
+        a.crashDuration = randomBetween(this.events.crashClearMin, this.events.crashClearMax);
+        b.crashDuration = a.crashDuration; // same incident, same clear time
+        this.stats.totalAccidents++;
+      }
+    }
+  }
+
+  _processBreakdowns(dt) {
+    if (this.events.breakdownChance <= 0) return;
+    // Convert per-minute chance to per-tick probability
+    const pPerTick = 1 - Math.pow(1 - this.events.breakdownChance / 100, dt / 60);
+    for (const v of this.vehicles) {
+      if (v.crashed) continue;
+      if (Math.random() < pPerTick) {
+        v.crashed = true;
+        v.v = 0;
+        v.crashDuration = randomBetween(this.events.crashClearMin, this.events.crashClearMax);
+        this.stats.totalAccidents++;
       }
     }
   }

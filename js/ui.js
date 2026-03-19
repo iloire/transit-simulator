@@ -260,6 +260,9 @@ export function setupUI(simulation, renderer) {
 
   // Advanced behavior panel
   setupAdvancedPanel($, config, saveConfig);
+
+  // Event parameter sliders
+  setupEventSliders(simulation);
 }
 
 function bindSlider(selector, onChange) {
@@ -383,4 +386,40 @@ function setupAdvancedPanel($, config, saveConfig) {
 
   // Load initial profile
   loadProfileToUI(activeProfile);
+}
+
+/** Wire up the Accidents & Events sliders to simulation.events */
+function setupEventSliders(simulation) {
+  const evtSliders = document.querySelectorAll('.evt-slider');
+
+  const evtUnits = {
+    crashSpeedThreshold: { suffix: ' m/s', decimals: 1 },
+    crashProbability:    { suffix: '%', decimals: 0 },
+    crashClearMin:       { suffix: 's', decimals: 0 },
+    crashClearMax:       { suffix: 's', decimals: 0 },
+    lateralTolerance:    { suffix: '', decimals: 2 },
+    longitudinalTolerance: { suffix: '', decimals: 2 },
+    reactionJitter:      { suffix: '%', decimals: 0 },
+    breakdownChance:     { suffix: '%', decimals: 1 },
+  };
+
+  evtSliders.forEach(sl => {
+    const key = sl.dataset.event;
+
+    // Initialize slider from simulation defaults
+    sl.value = simulation.events[key];
+    const fmt = evtUnits[key];
+    const valEl = sl.nextElementSibling;
+    if (valEl && fmt) {
+      valEl.textContent = Number(simulation.events[key]).toFixed(fmt.decimals) + fmt.suffix;
+    }
+
+    sl.addEventListener('input', () => {
+      const val = parseFloat(sl.value);
+      simulation.events[key] = val;
+      if (valEl && fmt) {
+        valEl.textContent = val.toFixed(fmt.decimals) + fmt.suffix;
+      }
+    });
+  });
 }

@@ -1,7 +1,7 @@
 import { clamp, nextId, vehicleColor, randomBetween } from './utils.js';
 
 export class Vehicle {
-  constructor(x, lane, behavior, road) {
+  constructor(x, lane, behavior, road, jitterPct = 0.1) {
     this.id = nextId();
     this.x = x;
     this.lane = lane;
@@ -22,7 +22,7 @@ export class Vehicle {
     this.crashDuration = randomBetween(8, 20); // seconds before cleared
 
     // Add slight randomness to reaction time
-    this.reactionJitter = randomBetween(0.9, 1.1);
+    this.reactionJitter = randomBetween(1 - jitterPct, 1 + jitterPct);
   }
 
   /** IDM: compute acceleration given a leader vehicle (or null for free road) */
