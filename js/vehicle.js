@@ -7,9 +7,12 @@ export class Vehicle {
     this.lane = lane;
     this.targetLane = lane;
     this.laneProgress = 0;    // 0 = at current lane, 1 = at target lane
-    this.v = behavior.v0 * randomBetween(0.7, 1.0); // initial speed with some variance
+    // Each driver has their own desired speed: ±10% variation around the behavior's v0
+    // This creates natural speed differentials even within the same behavior group
+    this.personalV0 = behavior.v0 * randomBetween(0.9, 1.1);
+    this.v = this.personalV0 * randomBetween(0.7, 1.0); // initial speed ramp-up
     this.a = 0;
-    this.behavior = behavior;
+    this.behavior = { ...behavior, v0: this.personalV0 };
     this.road = road;
 
     this.type = behavior.vehicleType;
