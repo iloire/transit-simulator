@@ -3,7 +3,8 @@
     "allow": [
       "WebFetch(domain:en.wikipedia.org)",
       "Bash(git init:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(node --check /Users/ivan/code/transit-simulator/js/ui.js 2>&1)"
     ]
   }
 }

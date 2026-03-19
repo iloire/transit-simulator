@@ -102,52 +102,76 @@ export function setupUI(simulation, renderer) {
     simulation.spawnRate = v / 10;
   });
 
-  // Behavior mix
-  const behaviorMap = {
-    '#mix-optimal': 'mixOptimal',
-    '#mix-centerhog': 'mixCenterhog',
-    '#mix-aggressive': 'mixAggressive',
-    '#mix-cautious': 'mixCautious',
-  };
-  const simBehaviorMap = {
-    mixOptimal: 'optimal',
-    mixCenterhog: 'centerHog',
-    mixAggressive: 'aggressive',
-    mixCautious: 'cautious',
-  };
+  // Linked slider group: when one changes, others rebalance to keep sum = 100
+  function setupLinkedGroup(sliders) {
+    for (const item of sliders) {
+      const el = $(item.sel);
+      if (!el) continue;
+      el.addEventListener('input', () => {
+        const newVal = Math.min(100, Math.max(0, parseInt(el.value)));
+        const others = sliders.filter(s => s.sel !== item.sel);
+        const othersSum = others.reduce((s, o) => s + parseInt($(o.sel).value), 0);
+        const remaining = 100 - newVal;
 
-  for (const [sel, configKey] of Object.entries(behaviorMap)) {
-    const slider = $(sel);
-    if (!slider) continue;
-    slider.addEventListener('input', () => {
-      const v = parseInt(slider.value);
-      set(configKey, v);
-      set('preset', '');
-      if ($('#country-preset')) $('#country-preset').value = '';
-      simulation.behaviorMix[simBehaviorMap[configKey]] = v;
-      $(sel + '-val').textContent = v + '%';
-    });
+        // Distribute remaining proportionally among others
+        if (othersSum > 0) {
+          let distributed = 0;
+          for (let i = 0; i < others.length; i++) {
+            const o = others[i];
+            const oldVal = parseInt($(o.sel).value);
+            let share;
+            if (i === others.length - 1) {
+              share = remaining - distributed; // last one gets the rounding remainder
+            } else {
+              share = Math.round((oldVal / othersSum) * remaining);
+            }
+            share = Math.max(0, Math.min(100, share));
+            distributed += share;
+            $(o.sel).value = share;
+            $(o.sel).setAttribute('value', share);
+            $(o.sel + '-val').textContent = share + '%';
+            o.apply(share);
+          }
+        } else {
+          // All others are 0 — split evenly
+          const share = Math.floor(remaining / others.length);
+          let leftover = remaining - share * others.length;
+          for (const o of others) {
+            const v = share + (leftover > 0 ? 1 : 0);
+            if (leftover > 0) leftover--;
+            $(o.sel).value = v;
+            $(o.sel).setAttribute('value', v);
+            $(o.sel + '-val').textContent = v + '%';
+            o.apply(v);
+          }
+        }
+
+        // Update the changed slider's display and state
+        $(item.sel + '-val').textContent = newVal + '%';
+        item.apply(newVal);
+
+        // Clear preset if behavior group
+        set('preset', '');
+        if ($('#country-preset')) $('#country-preset').value = '';
+        saveConfig(config);
+      });
+    }
   }
 
-  // Vehicle mix
-  bindSlider('#mix-cars', (v) => {
-    set('mixCars', v);
-    set('preset', '');
-    if ($('#country-preset')) $('#country-preset').value = '';
-    simulation.vehicleMix.car = v;
-  });
-  bindSlider('#mix-trucks', (v) => {
-    set('mixTrucks', v);
-    set('preset', '');
-    if ($('#country-preset')) $('#country-preset').value = '';
-    simulation.vehicleMix.truck = v;
-  });
-  bindSlider('#mix-bikes', (v) => {
-    set('mixBikes', v);
-    set('preset', '');
-    if ($('#country-preset')) $('#country-preset').value = '';
-    simulation.vehicleMix.motorbike = v;
-  });
+  // Behavior mix group
+  setupLinkedGroup([
+    { sel: '#mix-optimal', apply: (v) => { config.mixOptimal = v; simulation.behaviorMix.optimal = v; } },
+    { sel: '#mix-centerhog', apply: (v) => { config.mixCenterhog = v; simulation.behaviorMix.centerHog = v; } },
+    { sel: '#mix-aggressive', apply: (v) => { config.mixAggressive = v; simulation.behaviorMix.aggressive = v; } },
+    { sel: '#mix-cautious', apply: (v) => { config.mixCautious = v; simulation.behaviorMix.cautious = v; } },
+  ]);
+
+  // Vehicle mix group
+  setupLinkedGroup([
+    { sel: '#mix-cars', apply: (v) => { config.mixCars = v; simulation.vehicleMix.car = v; } },
+    { sel: '#mix-trucks', apply: (v) => { config.mixTrucks = v; simulation.vehicleMix.truck = v; } },
+    { sel: '#mix-bikes', apply: (v) => { config.mixBikes = v; simulation.vehicleMix.motorbike = v; } },
+  ]);
 
   // Country presets — only affect driver behavior mix
   const countryPresets = {
