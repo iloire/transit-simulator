@@ -168,7 +168,16 @@ export class Simulation {
       this.vehicles.splice(250);
     }
 
-    // Flow measurement
+    // Flow measurement — count vehicles crossing the measurement point
+    for (const v of this.vehicles) {
+      if (v.crashed) continue;
+      const prevX = this.road.wrapX(v.x - v.v * dt);
+      const mp = this._flowMeasurePoint;
+      // Check if vehicle crossed the measurement point this tick (handling wrap)
+      const crossedForward = (prevX < mp && v.x >= mp)
+        || (prevX > mp + this.road.roadLength / 2 && v.x < mp); // wrapped
+      if (crossedForward) this._flowCounter++;
+    }
     this._flowTimer += dt;
     if (this._flowTimer >= 5) {
       this.stats.flowRate = Math.round((this._flowCounter / this._flowTimer) * 3600);
