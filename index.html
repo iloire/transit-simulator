@@ -70,7 +70,24 @@
 
     <!-- Column 2: Behavior Mix -->
     <div class="control-section">
-      <h3>Driver Behavior Mix</h3>
+      <h3>Driver Behavior Mix <span class="help-tip">?<span class="tip-text">Relative weight of each driver type when spawning new vehicles. Use country presets below to load real-world driving culture patterns.</span></span></h3>
+
+      <div class="control-row">
+        <label>Preset <span class="help-tip">?<span class="tip-text">Load a pre-configured mix based on typical driving culture in different countries. Adjusts behavior mix, vehicle mix, and speed limit.</span></span></label>
+        <select id="country-preset">
+          <option value="">Custom</option>
+          <option value="germany">Germany (Autobahn)</option>
+          <option value="uk">United Kingdom</option>
+          <option value="usa">United States</option>
+          <option value="italy">Italy</option>
+          <option value="india">India</option>
+          <option value="japan">Japan</option>
+          <option value="france">France</option>
+          <option value="brazil">Brazil</option>
+          <option value="netherlands">Netherlands</option>
+          <option value="saudi">Saudi Arabia</option>
+        </select>
+      </div>
 
       <div class="control-row">
         <label>Optimal <span class="help-tip">?<span class="tip-text">Ideal drivers. Use the best available lane, maintain safe following distance (1.2s), and change lanes smoothly when beneficial. Produce the best traffic flow.</span></span></label>
