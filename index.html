@@ -159,5 +159,29 @@
   </div>
 
   <script type="module" src="js/main.js"></script>
+  <script>
+    // Position tooltips with fixed positioning to avoid overflow clipping
+    document.addEventListener('mouseenter', (e) => {
+      const tip = e.target.closest('.help-tip');
+      if (!tip) return;
+      const text = tip.querySelector('.tip-text');
+      if (!text) return;
+      const rect = tip.getBoundingClientRect();
+      const tipW = 230;
+      // Horizontal: center on the icon, clamp to viewport
+      let left = rect.left + rect.width / 2 - tipW / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - tipW - 8));
+      text.style.left = left + 'px';
+      // Vertical: prefer above, fall back to below if clipped
+      text.style.top = '';
+      text.style.bottom = '';
+      const spaceAbove = rect.top;
+      if (spaceAbove > 120) {
+        text.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+      } else {
+        text.style.top = (rect.bottom + 6) + 'px';
+      }
+    }, true);
+  </script>
 </body>
 </html>

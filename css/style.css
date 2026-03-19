@@ -109,8 +109,7 @@ canvas {
   gap: 0;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  max-height: 340px;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .control-section {
@@ -309,11 +308,8 @@ select option {
 .help-tip .tip-text {
   visibility: hidden;
   opacity: 0;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 220px;
+  position: fixed;
+  width: 230px;
   padding: 8px 10px;
   background: #1e1e34;
   border: 1px solid var(--accent);
@@ -324,45 +320,14 @@ select option {
   line-height: 1.45;
   text-align: left;
   pointer-events: none;
-  z-index: 100;
+  z-index: 1000;
   transition: opacity 0.15s, visibility 0.15s;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-}
-
-.help-tip .tip-text::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--accent);
 }
 
 .help-tip:hover .tip-text {
   visibility: visible;
   opacity: 1;
-}
-
-/* Prevent tooltip clipping at edges */
-.control-section:first-child .help-tip .tip-text {
-  left: 0;
-  transform: translateX(0);
-}
-.control-section:first-child .help-tip .tip-text::after {
-  left: 7px;
-  transform: none;
-}
-
-.control-section:last-child .help-tip .tip-text {
-  left: auto;
-  right: 0;
-  transform: translateX(0);
-}
-.control-section:last-child .help-tip .tip-text::after {
-  left: auto;
-  right: 7px;
-  transform: none;
 }
 
 /* Responsive */
