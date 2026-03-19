@@ -1,99 +1,202 @@
+const STORAGE_KEY = 'transit-sim-config';
+
+/** All configurable settings with their defaults */
+function defaultConfig() {
+  return {
+    lanes: 3,
+    speedLimit: 80,
+    spawnRate: 15,
+    mixCars: 60,
+    mixTrucks: 25,
+    mixBikes: 15,
+    mixOptimal: 40,
+    mixCenterhog: 20,
+    mixAggressive: 25,
+    mixCautious: 15,
+    preset: '',
+  };
+}
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...defaultConfig(), ...JSON.parse(raw) };
+  } catch {}
+  return defaultConfig();
+}
+
+function saveConfig(config) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  } catch {}
+}
+
+/** Apply a config object to the simulation and all UI sliders */
+function applyConfig(config, simulation) {
+  // Road
+  simulation.road.laneCount = config.lanes;
+  simulation.road.speedLimit = config.speedLimit / 3.6;
+  simulation.spawnRate = config.spawnRate / 10;
+
+  // Behavior mix
+  simulation.behaviorMix.optimal = config.mixOptimal;
+  simulation.behaviorMix.centerHog = config.mixCenterhog;
+  simulation.behaviorMix.aggressive = config.mixAggressive;
+  simulation.behaviorMix.cautious = config.mixCautious;
+
+  // Vehicle mix
+  simulation.vehicleMix.car = config.mixCars;
+  simulation.vehicleMix.truck = config.mixTrucks;
+  simulation.vehicleMix.motorbike = config.mixBikes;
+
+  // Sync all DOM elements
+  syncSlider('#lanes', config.lanes);
+  syncSlider('#speed-limit', config.speedLimit, ' km/h');
+  syncSlider('#spawn-rate', config.spawnRate);
+  syncSlider('#mix-cars', config.mixCars, '%');
+  syncSlider('#mix-trucks', config.mixTrucks, '%');
+  syncSlider('#mix-bikes', config.mixBikes, '%');
+  syncSlider('#mix-optimal', config.mixOptimal, '%');
+  syncSlider('#mix-centerhog', config.mixCenterhog, '%');
+  syncSlider('#mix-aggressive', config.mixAggressive, '%');
+  syncSlider('#mix-cautious', config.mixCautious, '%');
+
+  const presetEl = document.querySelector('#country-preset');
+  if (presetEl) presetEl.value = config.preset;
+}
+
 export function setupUI(simulation, renderer) {
   const $ = (sel) => document.querySelector(sel);
 
+  // Load persisted config and apply before first render
+  const config = loadConfig();
+  applyConfig(config, simulation);
+  simulation.reset();
+
+  // Helper: update config, persist, and apply to simulation
+  function set(key, value) {
+    config[key] = value;
+    saveConfig(config);
+  }
+
   // Road controls
   bindSlider('#lanes', (v) => {
+    set('lanes', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
     simulation.road.laneCount = v;
     simulation.reset();
   });
 
   bindSlider('#speed-limit', (v) => {
-    simulation.road.speedLimit = v / 3.6; // km/h to m/s
+    set('speedLimit', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
+    simulation.road.speedLimit = v / 3.6;
   });
 
   bindSlider('#spawn-rate', (v) => {
+    set('spawnRate', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
     simulation.spawnRate = v / 10;
   });
 
-  // Behavior mix — constrained to sum ~100
-  const behaviorSliders = ['#mix-optimal', '#mix-centerhog', '#mix-aggressive', '#mix-cautious'];
-  const behaviorKeys = ['optimal', 'centerHog', 'aggressive', 'cautious'];
+  // Behavior mix
+  const behaviorMap = {
+    '#mix-optimal': 'mixOptimal',
+    '#mix-centerhog': 'mixCenterhog',
+    '#mix-aggressive': 'mixAggressive',
+    '#mix-cautious': 'mixCautious',
+  };
+  const simBehaviorMap = {
+    mixOptimal: 'optimal',
+    mixCenterhog: 'centerHog',
+    mixAggressive: 'aggressive',
+    mixCautious: 'cautious',
+  };
 
-  for (let i = 0; i < behaviorSliders.length; i++) {
-    const sel = behaviorSliders[i];
-    const key = behaviorKeys[i];
+  for (const [sel, configKey] of Object.entries(behaviorMap)) {
     const slider = $(sel);
     if (!slider) continue;
-
     slider.addEventListener('input', () => {
-      simulation.behaviorMix[key] = parseInt(slider.value);
-      $(sel + '-val').textContent = slider.value + '%';
+      const v = parseInt(slider.value);
+      set(configKey, v);
+      set('preset', '');
+      if ($('#country-preset')) $('#country-preset').value = '';
+      simulation.behaviorMix[simBehaviorMap[configKey]] = v;
+      $(sel + '-val').textContent = v + '%';
     });
   }
 
   // Vehicle mix
-  bindSlider('#mix-cars', (v) => { simulation.vehicleMix.car = v; });
-  bindSlider('#mix-trucks', (v) => { simulation.vehicleMix.truck = v; });
-  bindSlider('#mix-bikes', (v) => { simulation.vehicleMix.motorbike = v; });
+  bindSlider('#mix-cars', (v) => {
+    set('mixCars', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
+    simulation.vehicleMix.car = v;
+  });
+  bindSlider('#mix-trucks', (v) => {
+    set('mixTrucks', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
+    simulation.vehicleMix.truck = v;
+  });
+  bindSlider('#mix-bikes', (v) => {
+    set('mixBikes', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
+    simulation.vehicleMix.motorbike = v;
+  });
 
   // Country presets
   const countryPresets = {
     germany: {
-      name: 'Germany (Autobahn)',
       lanes: 3, speedLimit: 130, spawnRate: 20,
       behavior: { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10 },
       vehicles: { car: 60, truck: 30, motorbike: 10 },
     },
     uk: {
-      name: 'United Kingdom',
       lanes: 3, speedLimit: 110, spawnRate: 18,
       behavior: { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20 },
       vehicles: { car: 70, truck: 20, motorbike: 10 },
     },
     usa: {
-      name: 'United States',
       lanes: 4, speedLimit: 105, spawnRate: 22,
       behavior: { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
       vehicles: { car: 55, truck: 35, motorbike: 10 },
     },
     italy: {
-      name: 'Italy',
       lanes: 3, speedLimit: 130, spawnRate: 20,
       behavior: { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15 },
       vehicles: { car: 55, truck: 20, motorbike: 25 },
     },
     india: {
-      name: 'India',
       lanes: 3, speedLimit: 80, spawnRate: 35,
       behavior: { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15 },
       vehicles: { car: 35, truck: 30, motorbike: 35 },
     },
     japan: {
-      name: 'Japan',
       lanes: 3, speedLimit: 100, spawnRate: 20,
       behavior: { optimal: 50, centerHog: 15, aggressive: 5, cautious: 30 },
       vehicles: { car: 70, truck: 20, motorbike: 10 },
     },
     france: {
-      name: 'France',
       lanes: 3, speedLimit: 130, spawnRate: 18,
       behavior: { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
       vehicles: { car: 65, truck: 20, motorbike: 15 },
     },
     brazil: {
-      name: 'Brazil',
       lanes: 3, speedLimit: 110, spawnRate: 25,
       behavior: { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15 },
       vehicles: { car: 50, truck: 25, motorbike: 25 },
     },
     netherlands: {
-      name: 'Netherlands',
       lanes: 3, speedLimit: 100, spawnRate: 22,
       behavior: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20 },
       vehicles: { car: 65, truck: 25, motorbike: 10 },
     },
     saudi: {
-      name: 'Saudi Arabia',
       lanes: 4, speedLimit: 120, spawnRate: 18,
       behavior: { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10 },
       vehicles: { car: 75, truck: 15, motorbike: 10 },
@@ -108,32 +211,22 @@ export function setupUI(simulation, renderer) {
       const p = countryPresets[key];
       if (!p) return;
 
-      // Apply road settings
-      setSlider('#lanes', p.lanes);
-      simulation.road.laneCount = p.lanes;
+      // Update config
+      config.preset = key;
+      config.lanes = p.lanes;
+      config.speedLimit = p.speedLimit;
+      config.spawnRate = p.spawnRate;
+      config.mixOptimal = p.behavior.optimal;
+      config.mixCenterhog = p.behavior.centerHog;
+      config.mixAggressive = p.behavior.aggressive;
+      config.mixCautious = p.behavior.cautious;
+      config.mixCars = p.vehicles.car;
+      config.mixTrucks = p.vehicles.truck;
+      config.mixBikes = p.vehicles.motorbike;
+      saveConfig(config);
 
-      setSlider('#speed-limit', p.speedLimit);
-      simulation.road.speedLimit = p.speedLimit / 3.6;
-
-      setSlider('#spawn-rate', p.spawnRate);
-      simulation.spawnRate = p.spawnRate / 10;
-
-      // Apply behavior mix
-      const bKeys = ['optimal', 'centerHog', 'aggressive', 'cautious'];
-      const bSliders = ['#mix-optimal', '#mix-centerhog', '#mix-aggressive', '#mix-cautious'];
-      for (let i = 0; i < bKeys.length; i++) {
-        simulation.behaviorMix[bKeys[i]] = p.behavior[bKeys[i]];
-        setSlider(bSliders[i], p.behavior[bKeys[i]], '%');
-      }
-
-      // Apply vehicle mix
-      simulation.vehicleMix.car = p.vehicles.car;
-      simulation.vehicleMix.truck = p.vehicles.truck;
-      simulation.vehicleMix.motorbike = p.vehicles.motorbike;
-      setSlider('#mix-cars', p.vehicles.car, '%');
-      setSlider('#mix-trucks', p.vehicles.truck, '%');
-      setSlider('#mix-bikes', p.vehicles.motorbike, '%');
-
+      // Apply everything
+      applyConfig(config, simulation);
       simulation.reset();
     });
   }
@@ -180,17 +273,19 @@ function bindSlider(selector, onChange) {
   el.addEventListener('input', () => {
     const v = parseFloat(el.value);
     if (valEl) {
-      let suffix = el.dataset.suffix || '';
+      const suffix = el.dataset.suffix || '';
       valEl.textContent = v + suffix;
     }
     onChange(v);
   });
 }
 
-function setSlider(selector, value, suffix) {
+/** Force-sync a range input's visual thumb and its label */
+function syncSlider(selector, value, suffix) {
   const el = document.querySelector(selector);
   if (!el) return;
-  el.value = value;
+  el.value = String(value);
+  el.setAttribute('value', String(value));
   const valEl = document.querySelector(selector + '-val');
   if (valEl) {
     const s = suffix || el.dataset.suffix || '';
