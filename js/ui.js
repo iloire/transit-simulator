@@ -149,58 +149,18 @@ export function setupUI(simulation, renderer) {
     simulation.vehicleMix.motorbike = v;
   });
 
-  // Country presets
+  // Country presets — only affect driver behavior mix
   const countryPresets = {
-    germany: {
-      lanes: 3, speedLimit: 130, spawnRate: 20,
-      behavior: { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10 },
-      vehicles: { car: 60, truck: 30, motorbike: 10 },
-    },
-    uk: {
-      lanes: 3, speedLimit: 110, spawnRate: 18,
-      behavior: { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20 },
-      vehicles: { car: 70, truck: 20, motorbike: 10 },
-    },
-    usa: {
-      lanes: 4, speedLimit: 105, spawnRate: 22,
-      behavior: { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
-      vehicles: { car: 55, truck: 35, motorbike: 10 },
-    },
-    italy: {
-      lanes: 3, speedLimit: 130, spawnRate: 20,
-      behavior: { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15 },
-      vehicles: { car: 55, truck: 20, motorbike: 25 },
-    },
-    india: {
-      lanes: 3, speedLimit: 80, spawnRate: 35,
-      behavior: { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15 },
-      vehicles: { car: 35, truck: 30, motorbike: 35 },
-    },
-    japan: {
-      lanes: 3, speedLimit: 100, spawnRate: 20,
-      behavior: { optimal: 50, centerHog: 15, aggressive: 5, cautious: 30 },
-      vehicles: { car: 70, truck: 20, motorbike: 10 },
-    },
-    france: {
-      lanes: 3, speedLimit: 130, spawnRate: 18,
-      behavior: { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
-      vehicles: { car: 65, truck: 20, motorbike: 15 },
-    },
-    brazil: {
-      lanes: 3, speedLimit: 110, spawnRate: 25,
-      behavior: { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15 },
-      vehicles: { car: 50, truck: 25, motorbike: 25 },
-    },
-    netherlands: {
-      lanes: 3, speedLimit: 100, spawnRate: 22,
-      behavior: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20 },
-      vehicles: { car: 65, truck: 25, motorbike: 10 },
-    },
-    saudi: {
-      lanes: 4, speedLimit: 120, spawnRate: 18,
-      behavior: { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10 },
-      vehicles: { car: 75, truck: 15, motorbike: 10 },
-    },
+    germany:     { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10 },
+    uk:          { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20 },
+    usa:         { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
+    italy:       { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15 },
+    india:       { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15 },
+    japan:       { optimal: 50, centerHog: 15, aggressive:  5, cautious: 30 },
+    france:      { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
+    brazil:      { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15 },
+    netherlands: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20 },
+    saudi:       { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10 },
   };
 
   const presetSelect = $('#country-preset');
@@ -211,23 +171,23 @@ export function setupUI(simulation, renderer) {
       const p = countryPresets[key];
       if (!p) return;
 
-      // Update config
+      // Update config & simulation — behavior mix only
       config.preset = key;
-      config.lanes = p.lanes;
-      config.speedLimit = p.speedLimit;
-      config.spawnRate = p.spawnRate;
-      config.mixOptimal = p.behavior.optimal;
-      config.mixCenterhog = p.behavior.centerHog;
-      config.mixAggressive = p.behavior.aggressive;
-      config.mixCautious = p.behavior.cautious;
-      config.mixCars = p.vehicles.car;
-      config.mixTrucks = p.vehicles.truck;
-      config.mixBikes = p.vehicles.motorbike;
+      config.mixOptimal = p.optimal;
+      config.mixCenterhog = p.centerHog;
+      config.mixAggressive = p.aggressive;
+      config.mixCautious = p.cautious;
       saveConfig(config);
 
-      // Apply everything
-      applyConfig(config, simulation);
-      simulation.reset();
+      simulation.behaviorMix.optimal = p.optimal;
+      simulation.behaviorMix.centerHog = p.centerHog;
+      simulation.behaviorMix.aggressive = p.aggressive;
+      simulation.behaviorMix.cautious = p.cautious;
+
+      syncSlider('#mix-optimal', p.optimal, '%');
+      syncSlider('#mix-centerhog', p.centerHog, '%');
+      syncSlider('#mix-aggressive', p.aggressive, '%');
+      syncSlider('#mix-cautious', p.cautious, '%');
     });
   }
 
