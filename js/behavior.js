@@ -22,8 +22,8 @@ export const PRESETS = {
     politeness: 0.3,
     aThreshold: 0.2,
     bSafe: 4.0,
-    lanePreference: null,
-    laneBias: 0,
+    lanePreference: 'right',
+    laneBias: 1.2,
   },
   centerHog: {
     name: 'Center Hog',
@@ -65,7 +65,7 @@ export const PRESETS = {
     aThreshold: 0.8,
     bSafe: 2.0,
     lanePreference: 'right',
-    laneBias: 0.8,
+    laneBias: 1.5,
   },
 };
 

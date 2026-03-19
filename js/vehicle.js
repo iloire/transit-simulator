@@ -56,7 +56,7 @@ export class Vehicle {
   }
 
   /** MOBIL: evaluate whether to change to an adjacent lane */
-  evaluateLaneChange(getLaneVehicles) {
+  evaluateLaneChange(getLaneVehicles, rightOvertakeAllowed = false) {
     if (this.crashed) return null;
     if (this.lane !== this.targetLane) return null; // already changing
 
@@ -109,6 +109,18 @@ export class Vehicle {
       let incentive = (aNew - aCurrent)
         + politeness * ((aFollowerNew - aFollowerCurrent) + (aFollowerOldNew - aFollowerCurrent));
 
+      // Right-overtake penalty: moving to a higher lane index to go faster = right overtake
+      // Polite/cautious drivers heavily penalize this; aggressive drivers mostly ignore it
+      if (!rightOvertakeAllowed && targetLane > currentLane) {
+        const leader = this._findLeader(currentLane, getLaneVehicles);
+        const wouldOvertakeOnRight = leader && this.v > leader.v * 0.9;
+        if (wouldOvertakeOnRight) {
+          // Penalty scaled by politeness: polite drivers almost never do it
+          const penalty = 2.0 * (0.3 + politeness * 2.0);
+          incentive -= penalty;
+        }
+      }
+
       // Lane preference bias
       if (lanePreference === 'center') {
         const center = this.road.centerLane;
@@ -116,7 +128,20 @@ export class Vehicle {
         const targetDist = Math.abs(targetLane - center);
         incentive += laneBias * (currentDist - targetDist); // positive if moving toward center
       } else if (lanePreference === 'right') {
-        incentive += laneBias * (targetLane - currentLane); // positive if moving right (higher index)
+        if (targetLane > currentLane) {
+          // Moving right: strong pull if not blocked in right lane
+          const rightLeader = this._findLeader(targetLane, getLaneVehicles);
+          const canMaintainSpeed = !rightLeader || rightLeader.v > this.v * 0.85;
+          incentive += laneBias * (canMaintainSpeed ? 1.5 : 0.3);
+        } else {
+          // Moving left: only do it if current leader is actually slow
+          const myLeaderHere = this._findLeader(currentLane, getLaneVehicles);
+          const isBlocked = myLeaderHere && myLeaderHere.v < this.v * 0.8;
+          if (!isBlocked) {
+            // Not blocked — penalize moving left (stay right)
+            incentive -= laneBias * 1.0;
+          }
+        }
       }
 
       if (incentive > bestIncentive) {

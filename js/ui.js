@@ -189,16 +189,16 @@ export function setupUI(simulation, renderer) {
 
   // Country presets — only affect driver behavior mix
   const countryPresets = {
-    germany:     { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10 },
-    uk:          { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20 },
-    usa:         { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
-    italy:       { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15 },
-    india:       { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15 },
-    japan:       { optimal: 50, centerHog: 15, aggressive:  5, cautious: 30 },
-    france:      { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15 },
-    brazil:      { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15 },
-    netherlands: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20 },
-    saudi:       { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10 },
+    germany:     { optimal: 55, centerHog: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
+    uk:          { optimal: 40, centerHog: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+    usa:         { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
+    italy:       { optimal: 20, centerHog: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
+    india:       { optimal: 10, centerHog: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
+    japan:       { optimal: 50, centerHog: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
+    france:      { optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
+    brazil:      { optimal: 15, centerHog: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
+    netherlands: { optimal: 55, centerHog: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+    saudi:       { optimal: 15, centerHog: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
   };
 
   const presetSelect = $('#country-preset');
@@ -221,6 +221,13 @@ export function setupUI(simulation, renderer) {
       simulation.behaviorMix.centerHog = p.centerHog;
       simulation.behaviorMix.aggressive = p.aggressive;
       simulation.behaviorMix.cautious = p.cautious;
+
+      // Set right-overtake culture
+      simulation.events.rightOvertakeAllowed = p.rightOvertakeAllowed;
+      const rightOvertakeToggle = document.querySelector('#evt-right-overtake');
+      if (rightOvertakeToggle) rightOvertakeToggle.checked = p.rightOvertakeAllowed;
+      config.eventOverrides = { ...simulation.events };
+      saveConfig(config);
 
       syncSlider('#mix-optimal', p.optimal, '%');
       syncSlider('#mix-centerhog', p.centerHog, '%');
@@ -435,7 +442,7 @@ function setupEventSliders(simulation, config, saveConfig) {
 
   const evtUnits = {
     crashSpeedThreshold: { suffix: ' km/h', decimals: 0 },
-    crashProbability:    { suffix: '%', decimals: 0 },
+    crashRate:           { suffix: '‰', decimals: 0 },
     crashClearMin:       { suffix: 's', decimals: 0 },
     crashClearMax:       { suffix: 's', decimals: 0 },
     lateralTolerance:    { suffix: '', decimals: 2 },
@@ -466,4 +473,15 @@ function setupEventSliders(simulation, config, saveConfig) {
       saveConfig(config);
     });
   });
+
+  // Right-overtake toggle
+  const rightOvertakeToggle = document.querySelector('#evt-right-overtake');
+  if (rightOvertakeToggle) {
+    rightOvertakeToggle.checked = simulation.events.rightOvertakeAllowed;
+    rightOvertakeToggle.addEventListener('change', () => {
+      simulation.events.rightOvertakeAllowed = rightOvertakeToggle.checked;
+      config.eventOverrides = { ...simulation.events };
+      saveConfig(config);
+    });
+  }
 }

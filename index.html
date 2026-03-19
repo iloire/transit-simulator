@@ -255,9 +255,9 @@
             <span class="val evt-val">25 km/h</span>
           </div>
           <div class="control-row">
-            <label>Crash chance <span class="help-tip">?<span class="tip-text">Probability that a qualifying overlap actually results in a crash. 100% = every overlap crashes. Lower values simulate near-misses and lucky avoidance.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashProbability" min="0" max="100" step="1" value="3">
-            <span class="val evt-val">3%</span>
+            <label>Crash rate <span class="help-tip">?<span class="tip-text">Base crashes per 1,000 dangerous encounters. Real-world is very low (~1–5). Aggressive drivers and right-overtaking multiply this rate automatically.</span></span></label>
+            <input type="range" class="evt-slider" data-event="crashRate" min="0" max="50" step="1" value="5">
+            <span class="val evt-val">5‰</span>
           </div>
           <div class="control-row">
             <label>Lateral tol <span class="help-tip">?<span class="tip-text">Multiplier on combined vehicle width for lateral collision detection. Lower = vehicles must be more directly aligned. Higher = more forgiving overlap zone.</span></span></label>
@@ -284,7 +284,14 @@
           </div>
         </div>
         <div class="param-group">
-          <h4>Random Events</h4>
+          <h4>Road Culture &amp; Events</h4>
+          <div class="control-row">
+            <label>Right overtake <span class="help-tip">?<span class="tip-text">Whether right-side overtaking is culturally normal (e.g. Brazil, India, USA). When off, right-overtaking carries a 5x crash multiplier. When on, it's still riskier (2x) but expected.</span></span></label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="evt-right-overtake">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
           <div class="control-row">
             <label>Reaction jitter <span class="help-tip">?<span class="tip-text">Percentage of random variation in each driver's reaction time. Higher = more unpredictable drivers, more phantom waves. 0% = all drivers react identically.</span></span></label>
             <input type="range" class="evt-slider" data-event="reactionJitter" min="0" max="50" step="1" value="10">
