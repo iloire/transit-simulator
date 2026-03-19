@@ -131,7 +131,7 @@ export function setupUI(simulation, renderer) {
   });
 
   // Linked slider group: when one changes, others rebalance to keep sum = 100
-  function setupLinkedGroup(sliders, { onGroupChange } = {}) {
+  function setupLinkedGroup(sliders) {
     for (const item of sliders) {
       const el = $(item.sel);
       if (!el) continue;
@@ -182,32 +182,24 @@ export function setupUI(simulation, renderer) {
         set('preset', '');
         if ($('#country-preset')) $('#country-preset').value = '';
         saveConfig(config);
-        if (onGroupChange) onGroupChange();
       });
     }
   }
 
-  // Debounce reset so dragging a slider doesn't reset on every pixel
-  let resetTimer = null;
-  function debouncedReset() {
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => simulation.reset(), 300);
-  }
-
-  // Behavior mix group — reset sim so change is immediately visible
+  // Behavior mix group
   setupLinkedGroup([
     { sel: '#mix-optimal', apply: (v) => { config.mixOptimal = v; simulation.behaviorMix.optimal = v; } },
     { sel: '#mix-centerhog', apply: (v) => { config.mixCenterhog = v; simulation.behaviorMix.centerHog = v; } },
     { sel: '#mix-aggressive', apply: (v) => { config.mixAggressive = v; simulation.behaviorMix.aggressive = v; } },
     { sel: '#mix-cautious', apply: (v) => { config.mixCautious = v; simulation.behaviorMix.cautious = v; } },
-  ], { onGroupChange: debouncedReset });
+  ]);
 
-  // Vehicle mix group — also reset for immediate effect
+  // Vehicle mix group
   setupLinkedGroup([
     { sel: '#mix-cars', apply: (v) => { config.mixCars = v; simulation.vehicleMix.car = v; } },
     { sel: '#mix-trucks', apply: (v) => { config.mixTrucks = v; simulation.vehicleMix.truck = v; } },
     { sel: '#mix-bikes', apply: (v) => { config.mixBikes = v; simulation.vehicleMix.motorbike = v; } },
-  ], { onGroupChange: debouncedReset });
+  ]);
 
   const presetSelect = $('#country-preset');
   if (presetSelect) {

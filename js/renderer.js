@@ -189,19 +189,7 @@ export class Renderer {
       ctx.fillRect(w / 2 - hlSize, -h * 0.25, hlSize, h * 0.15);
       ctx.fillRect(w / 2 - hlSize, h * 0.1, hlSize, h * 0.15);
 
-      // Behavior indicator — colored stripe on rear of vehicle
-      const indicatorColors = {
-        optimal: '#2ecc71',
-        centerHog: '#f39c12',
-        aggressive: '#e74c3c',
-        cautious: '#3498db',
-      };
-      const stripeColor = indicatorColors[v.behavior.presetKey];
-      if (stripeColor) {
-        ctx.fillStyle = stripeColor;
-        const stripeW = Math.max(3, w * 0.15);
-        ctx.fillRect(-w / 2, -h / 2, stripeW, h);
-      }
+      // No separate indicator needed — body color represents behavior
     }
 
     ctx.restore();

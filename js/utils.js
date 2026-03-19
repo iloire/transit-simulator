@@ -37,28 +37,33 @@ export function weightedPick(items, weights) {
   return items[items.length - 1];
 }
 
-/** Generate a vehicle color from a curated palette */
-const CAR_COLORS = [
-  '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-  '#1abc9c', '#e67e22', '#ecf0f1', '#34495e', '#c0392b',
-  '#2980b9', '#27ae60', '#f1c40f', '#8e44ad', '#16a085',
-  '#d35400', '#bdc3c7', '#7f8c8d', '#c23616', '#0097e6',
-];
+/**
+ * Generate a vehicle color based on driver behavior.
+ * Each behavior has a base hue; vehicle type shifts lightness.
+ * Slight random variation keeps it from looking flat.
+ */
+// Base HSL per behavior: [hue, saturation]
+const BEHAVIOR_HSL = {
+  optimal:    [140, 65],  // green
+  centerHog:  [36,  80],  // orange/amber
+  aggressive: [0,   75],  // red
+  cautious:   [210, 70],  // blue
+};
 
-const TRUCK_COLORS = [
-  '#2c3e50', '#4a6741', '#5d4e37', '#3d3d6b', '#6b3d3d',
-  '#4a4a4a', '#2d4a2d', '#4a3d2d', '#2d3d4a', '#5a4a3a',
-];
+// Vehicle type lightness ranges: [min, max]
+const TYPE_LIGHTNESS = {
+  car:       [40, 55],
+  truck:     [28, 38],
+  motorbike: [55, 68],
+};
 
-const BIKE_COLORS = [
-  '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff922b',
-  '#ff6348', '#ffa502', '#2ed573', '#1e90ff', '#ff4757',
-];
-
-export function vehicleColor(type) {
-  if (type === 'truck') return TRUCK_COLORS[randomInt(0, TRUCK_COLORS.length - 1)];
-  if (type === 'motorbike') return BIKE_COLORS[randomInt(0, BIKE_COLORS.length - 1)];
-  return CAR_COLORS[randomInt(0, CAR_COLORS.length - 1)];
+export function vehicleColor(vehicleType, behaviorKey) {
+  const [h, s] = BEHAVIOR_HSL[behaviorKey] || [0, 0];
+  const [lMin, lMax] = TYPE_LIGHTNESS[vehicleType] || [40, 55];
+  // Add slight hue and lightness jitter for variety
+  const hJitter = randomBetween(-12, 12);
+  const l = randomBetween(lMin, lMax);
+  return `hsl(${Math.round(h + hJitter)}, ${s}%, ${Math.round(l)}%)`;
 }
 
 let _nextId = 0;

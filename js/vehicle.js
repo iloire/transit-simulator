@@ -15,7 +15,7 @@ export class Vehicle {
     this.type = behavior.vehicleType;
     this.length = behavior.length;
     this.width = behavior.width;
-    this.color = vehicleColor(this.type);
+    this.color = vehicleColor(this.type, behavior.presetKey);
 
     this.crashed = false;
     this.crashTimer = 0;
