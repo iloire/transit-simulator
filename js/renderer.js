@@ -189,17 +189,19 @@ export class Renderer {
       ctx.fillRect(w / 2 - hlSize, -h * 0.25, hlSize, h * 0.15);
       ctx.fillRect(w / 2 - hlSize, h * 0.1, hlSize, h * 0.15);
 
-      // Behavior indicator (tiny colored dot)
+      // Behavior indicator — colored stripe on rear of vehicle
       const indicatorColors = {
         optimal: '#2ecc71',
         centerHog: '#f39c12',
         aggressive: '#e74c3c',
         cautious: '#3498db',
       };
-      ctx.fillStyle = indicatorColors[v.behavior.presetKey] || '#fff';
-      ctx.beginPath();
-      ctx.arc(-w / 2 + 3, 0, Math.max(1.5, h * 0.15), 0, Math.PI * 2);
-      ctx.fill();
+      const stripeColor = indicatorColors[v.behavior.presetKey];
+      if (stripeColor) {
+        ctx.fillStyle = stripeColor;
+        const stripeW = Math.max(3, w * 0.15);
+        ctx.fillRect(-w / 2, -h / 2, stripeW, h);
+      }
     }
 
     ctx.restore();
