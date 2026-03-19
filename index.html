@@ -158,6 +158,82 @@
     </div>
   </div>
 
+  <!-- Advanced behavior panel -->
+  <div class="advanced-panel" id="advanced-panel">
+    <button class="advanced-toggle" id="advanced-toggle">Advanced Behavior Tuning ▾</button>
+    <div class="advanced-body" id="advanced-body">
+      <div class="profile-tabs" id="profile-tabs">
+        <button class="profile-tab active" data-profile="optimal">Optimal</button>
+        <button class="profile-tab" data-profile="centerHog">Center Hog</button>
+        <button class="profile-tab" data-profile="aggressive">Aggressive</button>
+        <button class="profile-tab" data-profile="cautious">Cautious</button>
+      </div>
+      <div class="advanced-grid" id="advanced-grid">
+        <!-- IDM Parameters -->
+        <div class="param-group">
+          <h4>Car-Following (IDM)</h4>
+          <div class="control-row">
+            <label>Speed factor <span class="help-tip">?<span class="tip-text">Multiplier on the speed limit for desired speed. 1.0 = exactly the limit, 1.2 = 20% over, 0.85 = 15% under.</span></span></label>
+            <input type="range" class="adv-slider" data-param="v0Factor" min="0.5" max="1.5" step="0.05" value="1.0">
+            <span class="val adv-val">1.0</span>
+          </div>
+          <div class="control-row">
+            <label>Time headway <span class="help-tip">?<span class="tip-text">Desired time gap to the vehicle ahead (seconds). Lower = tailgating (aggressive), higher = safe distance. Real-world safe: 2s. Highway minimum: ~0.8s.</span></span></label>
+            <input type="range" class="adv-slider" data-param="T" min="0.2" max="4.0" step="0.1" value="1.2">
+            <span class="val adv-val">1.2s</span>
+          </div>
+          <div class="control-row">
+            <label>Max accel <span class="help-tip">?<span class="tip-text">Maximum acceleration in m/s². Higher = quicker off the line and faster recovery from braking. Typical car: 1.0–3.0 m/s².</span></span></label>
+            <input type="range" class="adv-slider" data-param="aMax" min="0.3" max="4.0" step="0.1" value="1.5">
+            <span class="val adv-val">1.5</span>
+          </div>
+          <div class="control-row">
+            <label>Comfort braking <span class="help-tip">?<span class="tip-text">Comfortable deceleration in m/s². How hard this driver is willing to brake normally. Higher = more assertive braking. Emergency braking is always harder.</span></span></label>
+            <input type="range" class="adv-slider" data-param="b" min="0.5" max="5.0" step="0.1" value="2.0">
+            <span class="val adv-val">2.0</span>
+          </div>
+          <div class="control-row">
+            <label>Min gap <span class="help-tip">?<span class="tip-text">Minimum bumper-to-bumper distance when stopped (meters). The jam distance — how close vehicles pack in standstill traffic.</span></span></label>
+            <input type="range" class="adv-slider" data-param="s0" min="0.5" max="10" step="0.5" value="3">
+            <span class="val adv-val">3m</span>
+          </div>
+        </div>
+        <!-- MOBIL Parameters -->
+        <div class="param-group">
+          <h4>Lane-Changing (MOBIL)</h4>
+          <div class="control-row">
+            <label>Politeness <span class="help-tip">?<span class="tip-text">How much this driver cares about inconveniencing others when changing lanes. 0 = totally selfish, 1 = very considerate. Affects whether they'll cut someone off.</span></span></label>
+            <input type="range" class="adv-slider" data-param="politeness" min="0" max="1.0" step="0.05" value="0.3">
+            <span class="val adv-val">0.30</span>
+          </div>
+          <div class="control-row">
+            <label>Change threshold <span class="help-tip">?<span class="tip-text">Minimum advantage needed to bother changing lanes (m/s²). Low = changes lanes at the slightest benefit (weaving). High = stays put unless there's a big reason.</span></span></label>
+            <input type="range" class="adv-slider" data-param="aThreshold" min="0" max="3.0" step="0.05" value="0.2">
+            <span class="val adv-val">0.20</span>
+          </div>
+          <div class="control-row">
+            <label>Safe braking <span class="help-tip">?<span class="tip-text">Max braking the new follower may need after a lane change (m/s²). Higher = accepts riskier merges. Low = only merges with big gaps. Above 6 is reckless.</span></span></label>
+            <input type="range" class="adv-slider" data-param="bSafe" min="1.0" max="10.0" step="0.5" value="4.0">
+            <span class="val adv-val">4.0</span>
+          </div>
+          <div class="control-row">
+            <label>Lane pref <span class="help-tip">?<span class="tip-text">Which lane this driver gravitates toward. "None" uses MOBIL purely. "Center" resists leaving the middle lane. "Right" prefers the slow lane.</span></span></label>
+            <select class="adv-select" data-param="lanePreference">
+              <option value="">None</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Lane bias <span class="help-tip">?<span class="tip-text">Strength of the lane preference. Higher = more stubborn about staying in the preferred lane. 0 = no preference even if one is set. 2+ = very sticky.</span></span></label>
+            <input type="range" class="adv-slider" data-param="laneBias" min="0" max="4.0" step="0.1" value="0">
+            <span class="val adv-val">0.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/main.js"></script>
   <script>
     // Position tooltips with fixed positioning to avoid overflow clipping

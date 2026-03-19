@@ -1,3 +1,5 @@
+import { PRESETS } from './behavior.js';
+
 const STORAGE_KEY = 'transit-sim-config';
 
 /** All configurable settings with their defaults */
@@ -247,6 +249,9 @@ export function setupUI(simulation, renderer) {
     updateStat('#stat-density', Math.round(simulation.stats.density) + ' veh/km');
     updateStat('#stat-time', formatTime(simulation.time));
   }, 200);
+
+  // Advanced behavior panel
+  setupAdvancedPanel($, config, saveConfig);
 }
 
 function bindSlider(selector, onChange) {
@@ -286,4 +291,88 @@ function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+/** Advanced panel: per-profile IDM/MOBIL parameter tuning */
+function setupAdvancedPanel($, config, saveConfig) {
+  const toggle = $('#advanced-toggle');
+  const body = $('#advanced-body');
+  if (!toggle || !body) return;
+
+  // Toggle open/close
+  toggle.addEventListener('click', () => {
+    const open = body.classList.toggle('open');
+    toggle.textContent = open ? 'Advanced Behavior Tuning ▴' : 'Advanced Behavior Tuning ▾';
+  });
+
+  // Profile tabs
+  let activeProfile = 'optimal';
+  const tabs = document.querySelectorAll('.profile-tab');
+  const sliders = document.querySelectorAll('.adv-slider');
+  const selects = document.querySelectorAll('.adv-select');
+
+  // Value formatting per parameter
+  const paramUnits = {
+    v0Factor: { suffix: '', decimals: 2 },
+    T: { suffix: 's', decimals: 1 },
+    aMax: { suffix: '', decimals: 1 },
+    b: { suffix: '', decimals: 1 },
+    s0: { suffix: 'm', decimals: 1 },
+    politeness: { suffix: '', decimals: 2 },
+    aThreshold: { suffix: '', decimals: 2 },
+    bSafe: { suffix: '', decimals: 1 },
+    laneBias: { suffix: '', decimals: 1 },
+  };
+
+  function loadProfileToUI(profileKey) {
+    const preset = PRESETS[profileKey];
+    sliders.forEach(sl => {
+      const param = sl.dataset.param;
+      if (preset[param] !== undefined) {
+        sl.value = preset[param];
+        const fmt = paramUnits[param];
+        const valEl = sl.nextElementSibling;
+        if (valEl) valEl.textContent = Number(preset[param]).toFixed(fmt.decimals) + fmt.suffix;
+      }
+    });
+    selects.forEach(sel => {
+      const param = sel.dataset.param;
+      if (param === 'lanePreference') {
+        sel.value = preset[param] || '';
+      }
+    });
+  }
+
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeProfile = tab.dataset.profile;
+      loadProfileToUI(activeProfile);
+    });
+  });
+
+  // Slider changes — write back to PRESETS (affects newly spawned vehicles)
+  sliders.forEach(sl => {
+    sl.addEventListener('input', () => {
+      const param = sl.dataset.param;
+      const val = parseFloat(sl.value);
+      PRESETS[activeProfile][param] = val;
+      const fmt = paramUnits[param];
+      const valEl = sl.nextElementSibling;
+      if (valEl) valEl.textContent = val.toFixed(fmt.decimals) + fmt.suffix;
+    });
+  });
+
+  // Select changes
+  selects.forEach(sel => {
+    sel.addEventListener('change', () => {
+      const param = sel.dataset.param;
+      PRESETS[activeProfile][param] = sel.value || null;
+    });
+  });
+
+  // Load initial profile
+  loadProfileToUI(activeProfile);
 }
