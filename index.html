@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transit Simulator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Transit Simulator</h1>
+    <div class="header-controls">
+      <span class="speed-label">Speed</span>
+      <input type="range" id="sim-speed" min="1" max="50" value="10" style="width:100px">
+      <span id="sim-speed-val" class="val">1x</span>
+      <button id="btn-pause">⏸ Pause</button>
+      <button id="btn-reset">↻ Reset</button>
+    </div>
+  </header>
+
+  <div class="canvas-wrap">
+    <canvas id="sim-canvas"></canvas>
+    <div class="canvas-hint">Drag to pan · Scroll to zoom</div>
+  </div>
+
+  <div class="controls">
+    <!-- Column 1: Road & Vehicle Config -->
+    <div class="control-section">
+      <h3>Road</h3>
+
+      <div class="control-row">
+        <label>Lanes</label>
+        <input type="range" id="lanes" min="2" max="6" value="3" step="1">
+        <span id="lanes-val" class="val">3</span>
+      </div>
+
+      <div class="control-row">
+        <label>Speed limit</label>
+        <input type="range" id="speed-limit" min="40" max="140" value="80" step="5" data-suffix=" km/h">
+        <span id="speed-limit-val" class="val">80 km/h</span>
+      </div>
+
+      <div class="control-row">
+        <label>Spawn rate</label>
+        <input type="range" id="spawn-rate" min="1" max="40" value="15" step="1">
+        <span id="spawn-rate-val" class="val">15</span>
+      </div>
+
+      <h3 style="margin-top:12px">Vehicles</h3>
+
+      <div class="control-row">
+        <label>Cars</label>
+        <input type="range" id="mix-cars" min="0" max="100" value="60" data-suffix="%">
+        <span id="mix-cars-val" class="val">60%</span>
+      </div>
+
+      <div class="control-row">
+        <label>Trucks</label>
+        <input type="range" id="mix-trucks" min="0" max="100" value="25" data-suffix="%">
+        <span id="mix-trucks-val" class="val">25%</span>
+      </div>
+
+      <div class="control-row">
+        <label>Motorbikes</label>
+        <input type="range" id="mix-bikes" min="0" max="100" value="15" data-suffix="%">
+        <span id="mix-bikes-val" class="val">15%</span>
+      </div>
+    </div>
+
+    <!-- Column 2: Behavior Mix -->
+    <div class="control-section">
+      <h3>Driver Behavior Mix</h3>
+
+      <div class="control-row">
+        <label>Optimal</label>
+        <input type="range" id="mix-optimal" min="0" max="100" value="40">
+        <span id="mix-optimal-val" class="val">40%</span>
+      </div>
+
+      <div class="control-row">
+        <label>Center hog</label>
+        <input type="range" id="mix-centerhog" min="0" max="100" value="20">
+        <span id="mix-centerhog-val" class="val">20%</span>
+      </div>
+
+      <div class="control-row">
+        <label>Aggressive</label>
+        <input type="range" id="mix-aggressive" min="0" max="100" value="25">
+        <span id="mix-aggressive-val" class="val">25%</span>
+      </div>
+
+      <div class="control-row">
+        <label>Cautious</label>
+        <input type="range" id="mix-cautious" min="0" max="100" value="15">
+        <span id="mix-cautious-val" class="val">15%</span>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot dot-optimal"></span> Optimal</div>
+        <div class="legend-item"><span class="legend-dot dot-centerhog"></span> Center hog</div>
+        <div class="legend-item"><span class="legend-dot dot-aggressive"></span> Aggressive</div>
+        <div class="legend-item"><span class="legend-dot dot-cautious"></span> Cautious</div>
+      </div>
+    </div>
+
+    <!-- Column 3: Stats -->
+    <div class="control-section">
+      <h3>Statistics</h3>
+
+      <div class="stat-grid">
+        <div class="stat-item success">
+          <div class="stat-label">Flow Rate</div>
+          <div class="stat-value" id="stat-flow">—</div>
+        </div>
+        <div class="stat-item info">
+          <div class="stat-label">Avg Speed</div>
+          <div class="stat-value" id="stat-speed">—</div>
+        </div>
+        <div class="stat-item danger">
+          <div class="stat-label">Total Crashes</div>
+          <div class="stat-value" id="stat-accidents">0</div>
+        </div>
+        <div class="stat-item danger">
+          <div class="stat-label">Active Crashes</div>
+          <div class="stat-value" id="stat-active-crashes">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Vehicles</div>
+          <div class="stat-value" id="stat-vehicles">—</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Density</div>
+          <div class="stat-value" id="stat-density">—</div>
+        </div>
+        <div class="stat-item" style="grid-column: span 2">
+          <div class="stat-label">Sim Time</div>
+          <div class="stat-value" id="stat-time">0:00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
