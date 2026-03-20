@@ -184,7 +184,13 @@ export class Simulation {
       const leader = v._findLeader(v.effectiveLane, getLaneVehicles);
       let leftLaneSpeed = null;
       if (!this.events.rightOvertakeAllowed && v.effectiveLane > 0) {
-        leftLaneSpeed = this._getNearbySpeeds(v, v.effectiveLane - 1, getLaneVehicles);
+        // Check ALL lanes to the left, use the slowest nearby traffic
+        for (let l = 0; l < v.effectiveLane; l++) {
+          const speed = this._getNearbySpeeds(v, l, getLaneVehicles);
+          if (speed !== null) {
+            leftLaneSpeed = leftLaneSpeed === null ? speed : Math.min(leftLaneSpeed, speed);
+          }
+        }
       }
       v.update(dt, leader, leftLaneSpeed);
     }
@@ -218,15 +224,17 @@ export class Simulation {
     this._updateStats();
   }
 
-  /** Get the minimum speed of nearby vehicles in a given lane (within ~60m) */
+  /** Get the minimum speed of nearby vehicles in a given lane (within scan range) */
   _getNearbySpeeds(vehicle, lane, getLaneVehicles) {
     const vehicles = getLaneVehicles(lane);
     let minSpeed = Infinity;
     let found = false;
+    // Scan 120m — at 30 m/s that's ~4s of travel, enough to catch nearby platoons
+    const scanRange = 120;
     for (const v of vehicles) {
       const distAhead = this.road.distAhead(vehicle.x, v.x);
       const absDist = Math.abs(distAhead);
-      if (absDist < 60) {
+      if (absDist < scanRange) {
         minSpeed = Math.min(minSpeed, v.v);
         found = true;
       }

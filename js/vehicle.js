@@ -213,15 +213,14 @@ export class Vehicle {
     let maxV = this.behavior.v0 * 1.3;
 
     // Right-overtake prevention: cap speed to left-lane traffic speed
-    // Polite drivers fully match, aggressive drivers ignore
-    if (leftLaneSpeed !== null && leftLaneSpeed < this.v) {
-      // politeness 0.0 → ignore, 0.1 → partial, 0.25+ → fully match left-lane speed
-      const respect = Math.min(1, this.behavior.politeness * 4);
-      if (respect > 0.05) {
-        // Allow a small margin (2 km/h) so we don't brake to exact same speed
-        const cap = leftLaneSpeed + 0.5; // +0.5 m/s ≈ 2 km/h margin
-        const effectiveCap = this.v * (1 - respect) + cap * respect;
-        maxV = Math.min(maxV, effectiveCap);
+    // Most drivers won't pass on the right; aggressive drivers ignore the rule
+    if (leftLaneSpeed !== null) {
+      // politeness 0.0 → ignore, 0.15+ → fully respect
+      const respect = Math.min(1, this.behavior.politeness * 6);
+      if (respect > 0.1) {
+        // Hard cap: don't exceed left-lane speed + tiny margin
+        const cap = leftLaneSpeed + 0.3; // +0.3 m/s ≈ 1 km/h margin
+        maxV = Math.min(maxV, cap);
       }
     }
 
