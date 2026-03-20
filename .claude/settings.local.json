@@ -4,7 +4,8 @@
       "WebFetch(domain:en.wikipedia.org)",
       "Bash(git init:*)",
       "WebFetch(domain:localhost)",
-      "Bash(node --check /Users/ivan/code/transit-simulator/js/ui.js 2>&1)"
+      "Bash(node --check /Users/ivan/code/transit-simulator/js/ui.js 2>&1)",
+      "Bash(node --check js/simulation.js && echo \"OK\")"
     ]
   }
 }

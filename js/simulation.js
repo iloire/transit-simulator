@@ -160,11 +160,21 @@ export class Simulation {
 
     const getLaneVehicles = (lane) => laneLookup[lane] || [];
 
-    // MOBIL lane changes
-    for (const v of this.vehicles) {
+    // MOBIL lane changes — shuffle order to prevent systematic bias,
+    // and update lane lookup after each change so vehicles don't pile into the same gap
+    const shuffled = [...this.vehicles];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    for (const v of shuffled) {
       const newLane = v.evaluateLaneChange(getLaneVehicles, this.events.rightOvertakeAllowed);
       if (newLane !== null) {
         v.startLaneChange(newLane);
+        // Immediately register in target lane so next vehicles see the gap is taken
+        if (laneLookup[newLane]) {
+          laneLookup[newLane].push(v);
+        }
       }
     }
 
