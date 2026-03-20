@@ -7,7 +7,7 @@
  * MOBIL params: politeness, aThreshold (min incentive to change lane),
  *               bSafe (max safe braking for new follower)
  *
- * Lane preference: null | 'center' | 'right', with bias strength
+ * Lane preference: null | 'left' | 'right', with bias strength
  */
 
 export const PRESETS = {
@@ -25,8 +25,8 @@ export const PRESETS = {
     lanePreference: 'right',
     laneBias: 1.2,
   },
-  centerHog: {
-    name: 'Center Hog',
+  laneCamper: {
+    name: 'Lane Camper',
     v0Factor: 0.9,
     T: 1.5,
     aMax: 1.2,
@@ -36,7 +36,7 @@ export const PRESETS = {
     politeness: 0.5,
     aThreshold: 1.5,
     bSafe: 4.0,
-    lanePreference: 'center',
+    lanePreference: 'left',
     laneBias: 2.0,
   },
   aggressive: {

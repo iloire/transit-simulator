@@ -3,16 +3,16 @@ import { PRESETS } from './behavior.js';
 const STORAGE_KEY = 'transit-sim-config';
 
 export const COUNTRY_PRESETS = {
-  germany:     { name: 'Germany',     optimal: 55, centerHog: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
-  uk:          { name: 'UK',          optimal: 40, centerHog: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-  usa:         { name: 'USA',         optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
-  italy:       { name: 'Italy',       optimal: 20, centerHog: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
-  india:       { name: 'India',       optimal: 10, centerHog: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
-  japan:       { name: 'Japan',       optimal: 50, centerHog: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
-  france:      { name: 'France',      optimal: 30, centerHog: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
-  brazil:      { name: 'Brazil',      optimal: 15, centerHog: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
-  netherlands: { name: 'Netherlands', optimal: 55, centerHog: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-  saudi:       { name: 'Saudi Arabia',optimal: 15, centerHog: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
+  germany:     { name: 'Germany',     optimal: 55, laneCamper: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
+  uk:          { name: 'UK',          optimal: 40, laneCamper: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+  usa:         { name: 'USA',         optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
+  italy:       { name: 'Italy',       optimal: 20, laneCamper: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
+  india:       { name: 'India',       optimal: 10, laneCamper: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
+  japan:       { name: 'Japan',       optimal: 50, laneCamper: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
+  france:      { name: 'France',      optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
+  brazil:      { name: 'Brazil',      optimal: 15, laneCamper: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
+  netherlands: { name: 'Netherlands', optimal: 55, laneCamper: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
+  saudi:       { name: 'Saudi Arabia',optimal: 15, laneCamper: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
 };
 
 /** All configurable settings with their defaults */
@@ -26,7 +26,7 @@ function defaultConfig() {
     mixTrucks: 25,
     mixBikes: 15,
     mixOptimal: 40,
-    mixCenterhog: 20,
+    mixLanecamper: 20,
     mixAggressive: 25,
     mixCautious: 15,
     preset: '',
@@ -62,7 +62,7 @@ function applyConfig(config, simulation) {
 
   // Behavior mix
   simulation.behaviorMix.optimal = config.mixOptimal;
-  simulation.behaviorMix.centerHog = config.mixCenterhog;
+  simulation.behaviorMix.laneCamper = config.mixLanecamper;
   simulation.behaviorMix.aggressive = config.mixAggressive;
   simulation.behaviorMix.cautious = config.mixCautious;
 
@@ -80,7 +80,7 @@ function applyConfig(config, simulation) {
   syncSlider('#mix-trucks', config.mixTrucks, '%');
   syncSlider('#mix-bikes', config.mixBikes, '%');
   syncSlider('#mix-optimal', config.mixOptimal, '%');
-  syncSlider('#mix-centerhog', config.mixCenterhog, '%');
+  syncSlider('#mix-lanecamper', config.mixLanecamper, '%');
   syncSlider('#mix-aggressive', config.mixAggressive, '%');
   syncSlider('#mix-cautious', config.mixCautious, '%');
 
@@ -116,11 +116,13 @@ export function setupUI(simulation, renderer) {
     set('preset', '');
     if ($('#country-preset')) $('#country-preset').value = '';
     simulation.road.speedLimit = v / 3.6;
+    simulation.updateVehicleSpeeds();
   });
 
   bindSlider('#truck-speed-limit', (v) => {
     set('truckSpeedLimit', v);
     simulation.truckSpeedLimit = v / 3.6;
+    simulation.updateVehicleSpeeds();
   });
 
   bindSlider('#spawn-rate', (v) => {
@@ -131,7 +133,7 @@ export function setupUI(simulation, renderer) {
   });
 
   // Linked slider group: when one changes, others rebalance to keep sum = 100
-  function setupLinkedGroup(sliders) {
+  function setupLinkedGroup(sliders, onGroupChange) {
     for (const item of sliders) {
       const el = $(item.sel);
       if (!el) continue;
@@ -182,6 +184,7 @@ export function setupUI(simulation, renderer) {
         set('preset', '');
         if ($('#country-preset')) $('#country-preset').value = '';
         saveConfig(config);
+        if (onGroupChange) onGroupChange();
       });
     }
   }
@@ -189,10 +192,10 @@ export function setupUI(simulation, renderer) {
   // Behavior mix group
   setupLinkedGroup([
     { sel: '#mix-optimal', apply: (v) => { config.mixOptimal = v; simulation.behaviorMix.optimal = v; } },
-    { sel: '#mix-centerhog', apply: (v) => { config.mixCenterhog = v; simulation.behaviorMix.centerHog = v; } },
+    { sel: '#mix-lanecamper', apply: (v) => { config.mixLanecamper = v; simulation.behaviorMix.laneCamper = v; } },
     { sel: '#mix-aggressive', apply: (v) => { config.mixAggressive = v; simulation.behaviorMix.aggressive = v; } },
     { sel: '#mix-cautious', apply: (v) => { config.mixCautious = v; simulation.behaviorMix.cautious = v; } },
-  ]);
+  ], () => simulation.updateVehicleBehaviors());
 
   // Vehicle mix group
   setupLinkedGroup([
@@ -212,13 +215,13 @@ export function setupUI(simulation, renderer) {
       // Update config & simulation — behavior mix only
       config.preset = key;
       config.mixOptimal = p.optimal;
-      config.mixCenterhog = p.centerHog;
+      config.mixLanecamper = p.laneCamper;
       config.mixAggressive = p.aggressive;
       config.mixCautious = p.cautious;
       saveConfig(config);
 
       simulation.behaviorMix.optimal = p.optimal;
-      simulation.behaviorMix.centerHog = p.centerHog;
+      simulation.behaviorMix.laneCamper = p.laneCamper;
       simulation.behaviorMix.aggressive = p.aggressive;
       simulation.behaviorMix.cautious = p.cautious;
 
@@ -230,11 +233,11 @@ export function setupUI(simulation, renderer) {
       saveConfig(config);
 
       syncSlider('#mix-optimal', p.optimal, '%');
-      syncSlider('#mix-centerhog', p.centerHog, '%');
+      syncSlider('#mix-lanecamper', p.laneCamper, '%');
       syncSlider('#mix-aggressive', p.aggressive, '%');
       syncSlider('#mix-cautious', p.cautious, '%');
 
-      simulation.reset();
+      simulation.updateVehicleBehaviors();
     });
   }
 

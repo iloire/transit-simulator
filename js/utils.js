@@ -45,7 +45,7 @@ export function weightedPick(items, weights) {
 // Base HSL per behavior: [hue, saturation]
 const BEHAVIOR_HSL = {
   optimal:    [140, 65],  // green
-  centerHog:  [36,  80],  // orange/amber
+  laneCamper: [36,  80],  // orange/amber
   aggressive: [0,   75],  // red
   cautious:   [210, 70],  // blue
 };

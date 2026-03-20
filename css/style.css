@@ -248,7 +248,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Behavior-specific colors */
 .dot-optimal { background: var(--success); }
-.dot-centerhog { background: var(--warning); }
+.dot-lanecamper { background: var(--warning); }
 .dot-aggressive { background: var(--danger); }
 .dot-cautious { background: var(--info); }
 
@@ -415,7 +415,7 @@ select option {
 }
 
 .profile-tab[data-profile="optimal"].active { color: var(--success); border-bottom-color: var(--success); }
-.profile-tab[data-profile="centerHog"].active { color: var(--warning); border-bottom-color: var(--warning); }
+.profile-tab[data-profile="laneCamper"].active { color: var(--warning); border-bottom-color: var(--warning); }
 .profile-tab[data-profile="aggressive"].active { color: var(--danger); border-bottom-color: var(--danger); }
 .profile-tab[data-profile="cautious"].active { color: var(--info); border-bottom-color: var(--info); }
 

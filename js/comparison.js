@@ -55,7 +55,7 @@ export class ComparisonMode {
 
       // Apply country behavior mix
       sim.behaviorMix.optimal = preset.optimal;
-      sim.behaviorMix.centerHog = preset.centerHog;
+      sim.behaviorMix.laneCamper = preset.laneCamper;
       sim.behaviorMix.aggressive = preset.aggressive;
       sim.behaviorMix.cautious = preset.cautious;
       sim.events.rightOvertakeAllowed = preset.rightOvertakeAllowed;

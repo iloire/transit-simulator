@@ -106,9 +106,9 @@
       </div>
 
       <div class="control-row">
-        <label>Center hog <span class="help-tip">?<span class="tip-text">Stick to the center lane and rarely move. Force faster drivers to overtake on the left, creating bottlenecks. High values create frozen center lanes and phantom jams.</span></span></label>
-        <input type="range" id="mix-centerhog" min="0" max="100" value="20">
-        <span id="mix-centerhog-val" class="val">20%</span>
+        <label>Lane camper <span class="help-tip">?<span class="tip-text">Drivers who camp in passing lanes even when right lanes are free. They drift left thinking they're fast, block faster traffic, and resist moving right. Create bottlenecks in the fast lane.</span></span></label>
+        <input type="range" id="mix-lanecamper" min="0" max="100" value="20">
+        <span id="mix-lanecamper-val" class="val">20%</span>
       </div>
 
       <div class="control-row">
@@ -133,7 +133,7 @@
 
       <div class="legend">
         <div class="legend-item"><span class="legend-dot dot-optimal"></span> Optimal</div>
-        <div class="legend-item"><span class="legend-dot dot-centerhog"></span> Center hog</div>
+        <div class="legend-item"><span class="legend-dot dot-lanecamper"></span> Lane camper</div>
         <div class="legend-item"><span class="legend-dot dot-aggressive"></span> Aggressive</div>
         <div class="legend-item"><span class="legend-dot dot-cautious"></span> Cautious</div>
       </div>
@@ -175,7 +175,7 @@
     <div class="advanced-body" id="advanced-body">
       <div class="profile-tabs" id="profile-tabs">
         <button class="profile-tab active" data-profile="optimal">Optimal</button>
-        <button class="profile-tab" data-profile="centerHog">Center Hog</button>
+        <button class="profile-tab" data-profile="laneCamper">Lane Camper</button>
         <button class="profile-tab" data-profile="aggressive">Aggressive</button>
         <button class="profile-tab" data-profile="cautious">Cautious</button>
       </div>
@@ -228,10 +228,10 @@
             <span class="val adv-val">4.0</span>
           </div>
           <div class="control-row">
-            <label>Lane pref <span class="help-tip">?<span class="tip-text">Which lane this driver gravitates toward. "None" uses MOBIL purely. "Center" resists leaving the middle lane. "Right" prefers the slow lane.</span></span></label>
+            <label>Lane pref <span class="help-tip">?<span class="tip-text">Which lane this driver gravitates toward. "None" uses MOBIL purely. "Left" camps in passing lanes. "Right" prefers the slow lane (keep-right rule).</span></span></label>
             <select class="adv-select" data-param="lanePreference">
               <option value="">None</option>
-              <option value="center">Center</option>
+              <option value="left">Left</option>
               <option value="right">Right</option>
             </select>
           </div>

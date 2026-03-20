@@ -122,11 +122,17 @@ export class Vehicle {
       }
 
       // Lane preference bias
-      if (lanePreference === 'center') {
-        const center = this.road.centerLane;
-        const currentDist = Math.abs(currentLane - center);
-        const targetDist = Math.abs(targetLane - center);
-        incentive += laneBias * (currentDist - targetDist); // positive if moving toward center
+      if (lanePreference === 'left') {
+        // Lane campers gravitate left — they think they're faster
+        if (targetLane < currentLane) {
+          // Moving left: strong pull unless blocked
+          const leftLeader = this._findLeader(targetLane, getLaneVehicles);
+          const canMaintainSpeed = !leftLeader || leftLeader.v > this.behavior.v0 * 0.8;
+          incentive += laneBias * (canMaintainSpeed ? 1.5 : 0.3);
+        } else {
+          // Moving right: resist it heavily even when right lanes are free
+          incentive -= laneBias * 1.5;
+        }
       } else if (lanePreference === 'right') {
         if (targetLane > currentLane) {
           // Moving right: strong pull if not blocked in right lane

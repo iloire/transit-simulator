@@ -1,7 +1,7 @@
 import { Road } from './road.js';
 import { Vehicle } from './vehicle.js';
 import { createBehavior, PRESETS } from './behavior.js';
-import { weightedPick, randomBetween } from './utils.js';
+import { weightedPick, randomBetween, vehicleColor } from './utils.js';
 
 export class Simulation {
   constructor(config = {}) {
@@ -31,7 +31,7 @@ export class Simulation {
     // Behavior mix (weights, will be normalized)
     this.behaviorMix = {
       optimal: 40,
-      centerHog: 20,
+      laneCamper: 20,
       aggressive: 25,
       cautious: 15,
     };
@@ -74,8 +74,8 @@ export class Simulation {
     const keys = Object.keys(this.behaviorMix);
     const weights = keys.map(k => {
       let w = this.behaviorMix[k];
-      // Trucks are professional drivers — much less likely to be center hogs
-      if (vehicleType === 'truck' && k === 'centerHog') w *= 0.2;
+      // Trucks are professional drivers — much less likely to be lane campers
+      if (vehicleType === 'truck' && k === 'laneCamper') w *= 0.2;
       return w;
     });
     return weightedPick(keys, weights);
@@ -235,6 +235,41 @@ export class Simulation {
       ? this.vehicles.reduce((s, v) => s + v.v, 0) / this.vehicles.length * 3.6
       : 0;
     this.stats.density = this.vehicles.length / (this.road.roadLength / 1000);
+  }
+
+  /** Recalculate desired speeds for all vehicles after speed limit change */
+  updateVehicleSpeeds() {
+    for (const v of this.vehicles) {
+      // personalRatio captures the ±10% individual jitter
+      const personalRatio = v.behavior.v0 > 0 ? v.personalV0 / v.behavior.v0 : 1;
+      const newBehavior = createBehavior(
+        v.behavior.presetKey, v.behavior.vehicleType,
+        this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
+      );
+      v.personalV0 = newBehavior.v0 * personalRatio;
+      v.behavior = { ...newBehavior, v0: v.personalV0 };
+    }
+  }
+
+  /** Reassign behaviors to existing vehicles to match current behavior mix */
+  updateVehicleBehaviors() {
+    for (const v of this.vehicles) {
+      const newKey = this._pickBehavior(v.type);
+      if (newKey === v.behavior.presetKey) continue;
+
+      const personalRatio = v.behavior.v0 > 0 ? v.personalV0 / v.behavior.v0 : 1;
+      const newBehavior = createBehavior(
+        newKey, v.type,
+        this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
+      );
+      v.personalV0 = newBehavior.v0 * personalRatio;
+      v.behavior = { ...newBehavior, v0: v.personalV0 };
+      v.color = vehicleColor(v.type, newKey);
+      v.reactionJitter = randomBetween(
+        1 - this.events.reactionJitter / 100,
+        1 + this.events.reactionJitter / 100
+      );
+    }
   }
 
   reset() {
