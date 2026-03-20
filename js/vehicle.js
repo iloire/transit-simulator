@@ -22,6 +22,9 @@ export class Vehicle {
 
     // Add slight randomness to reaction time
     this.reactionJitter = randomBetween(1 - jitterPct, 1 + jitterPct);
+
+    // Cooldown after completing a lane change (prevents oscillation)
+    this.laneChangeCooldown = 0;
   }
 
   /** IDM: compute acceleration given a leader vehicle (or null for free road) */
@@ -55,6 +58,7 @@ export class Vehicle {
   /** MOBIL: evaluate whether to change to an adjacent lane */
   evaluateLaneChange(getLaneVehicles, rightOvertakeAllowed = false) {
     if (this.lane !== this.targetLane) return null; // already changing
+    if (this.laneChangeCooldown > 0) return null;   // recently changed
 
     const { politeness, aThreshold, bSafe, lanePreference, laneBias } = this.behavior;
     const currentLane = this.lane;
@@ -193,6 +197,9 @@ export class Vehicle {
   }
 
   update(dt, leader, leftLaneSpeed = null) {
+    // Tick cooldown
+    if (this.laneChangeCooldown > 0) this.laneChangeCooldown -= dt;
+
     // Compute IDM acceleration
     this.a = clamp(this.computeIDM(leader), -8, this.behavior.aMax);
 
@@ -221,6 +228,8 @@ export class Vehicle {
       if (this.laneProgress >= 1) {
         this.lane = this.targetLane;
         this.laneProgress = 0;
+        // Cooldown: wait 2-4s before considering another lane change
+        this.laneChangeCooldown = randomBetween(2, 4);
       }
     }
   }
