@@ -123,6 +123,14 @@
         <span id="mix-cautious-val" class="val">15%</span>
       </div>
 
+      <div class="control-row" style="margin-top:10px">
+        <label>Right overtake <span class="help-tip">?<span class="tip-text">Whether right-side overtaking is culturally normal (e.g. Brazil, India, USA). When off, most drivers slow down rather than pass on the right. Aggressive drivers still ignore the rule.</span></span></label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="evt-right-overtake">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
       <div class="legend">
         <div class="legend-item"><span class="legend-dot dot-optimal"></span> Optimal</div>
         <div class="legend-item"><span class="legend-dot dot-centerhog"></span> Center hog</div>
@@ -288,13 +296,6 @@
         </div>
         <div class="param-group">
           <h4>Road Culture &amp; Events</h4>
-          <div class="control-row">
-            <label>Right overtake <span class="help-tip">?<span class="tip-text">Whether right-side overtaking is culturally normal (e.g. Brazil, India, USA). When off, right-overtaking carries a 5x crash multiplier. When on, it's still riskier (2x) but expected.</span></span></label>
-            <label class="toggle-switch">
-              <input type="checkbox" id="evt-right-overtake">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
           <div class="control-row">
             <label>Reaction jitter <span class="help-tip">?<span class="tip-text">Percentage of random variation in each driver's reaction time. Higher = more unpredictable drivers, more phantom waves. 0% = all drivers react identically.</span></span></label>
             <input type="range" class="evt-slider" data-event="reactionJitter" min="0" max="50" step="1" value="10">
