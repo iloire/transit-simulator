@@ -124,6 +124,12 @@
       </div>
 
       <div class="control-row" style="margin-top:10px">
+        <label>Politeness <span class="help-tip">?<span class="tip-text">Cultural politeness level. Scales how much all drivers care about inconveniencing others. Low = selfish driving culture (cutting off, tailgating). High = considerate (bigger gaps, less weaving).</span></span></label>
+        <input type="range" id="politeness" min="0" max="100" value="50" data-suffix="%">
+        <span id="politeness-val" class="val">50%</span>
+      </div>
+
+      <div class="control-row">
         <label>Right overtake <span class="help-tip">?<span class="tip-text">Whether right-side overtaking is culturally normal (e.g. Brazil, India, USA). When off, most drivers slow down rather than pass on the right. Aggressive drivers still ignore the rule.</span></span></label>
         <label class="toggle-switch">
           <input type="checkbox" id="evt-right-overtake">

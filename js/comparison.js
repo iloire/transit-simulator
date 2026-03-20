@@ -58,6 +58,7 @@ export class ComparisonMode {
       sim.behaviorMix.laneCamper = preset.laneCamper;
       sim.behaviorMix.aggressive = preset.aggressive;
       sim.behaviorMix.cautious = preset.cautious;
+      sim.politenessFactor = preset.politeness / 50;
       sim.events.rightOvertakeAllowed = preset.rightOvertakeAllowed;
 
       // Apply vehicle mix from base config

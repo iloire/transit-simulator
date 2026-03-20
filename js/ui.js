@@ -3,16 +3,16 @@ import { PRESETS } from './behavior.js';
 const STORAGE_KEY = 'transit-sim-config';
 
 export const COUNTRY_PRESETS = {
-  germany:     { name: 'Germany',     optimal: 55, laneCamper: 10, aggressive: 25, cautious: 10, rightOvertakeAllowed: false },
-  uk:          { name: 'UK',          optimal: 40, laneCamper: 30, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-  usa:         { name: 'USA',         optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: true },
-  italy:       { name: 'Italy',       optimal: 20, laneCamper: 15, aggressive: 50, cautious: 15, rightOvertakeAllowed: false },
-  india:       { name: 'India',       optimal: 10, laneCamper: 20, aggressive: 55, cautious: 15, rightOvertakeAllowed: true },
-  japan:       { name: 'Japan',       optimal: 50, laneCamper: 15, aggressive:  5, cautious: 30, rightOvertakeAllowed: false },
-  france:      { name: 'France',      optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, rightOvertakeAllowed: false },
-  brazil:      { name: 'Brazil',      optimal: 15, laneCamper: 20, aggressive: 50, cautious: 15, rightOvertakeAllowed: true },
-  netherlands: { name: 'Netherlands', optimal: 55, laneCamper: 15, aggressive: 10, cautious: 20, rightOvertakeAllowed: false },
-  saudi:       { name: 'Saudi Arabia',optimal: 15, laneCamper: 15, aggressive: 60, cautious: 10, rightOvertakeAllowed: true },
+  germany:     { name: 'Germany',     optimal: 55, laneCamper: 10, aggressive: 25, cautious: 10, politeness: 55, rightOvertakeAllowed: false },
+  uk:          { name: 'UK',          optimal: 40, laneCamper: 30, aggressive: 10, cautious: 20, politeness: 70, rightOvertakeAllowed: false },
+  usa:         { name: 'USA',         optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, politeness: 40, rightOvertakeAllowed: true },
+  italy:       { name: 'Italy',       optimal: 20, laneCamper: 15, aggressive: 50, cautious: 15, politeness: 25, rightOvertakeAllowed: false },
+  india:       { name: 'India',       optimal: 10, laneCamper: 20, aggressive: 55, cautious: 15, politeness: 15, rightOvertakeAllowed: true },
+  japan:       { name: 'Japan',       optimal: 50, laneCamper: 15, aggressive:  5, cautious: 30, politeness: 85, rightOvertakeAllowed: false },
+  france:      { name: 'France',      optimal: 30, laneCamper: 25, aggressive: 30, cautious: 15, politeness: 35, rightOvertakeAllowed: false },
+  brazil:      { name: 'Brazil',      optimal: 15, laneCamper: 20, aggressive: 50, cautious: 15, politeness: 30, rightOvertakeAllowed: true },
+  netherlands: { name: 'Netherlands', optimal: 55, laneCamper: 15, aggressive: 10, cautious: 20, politeness: 75, rightOvertakeAllowed: false },
+  saudi:       { name: 'Saudi Arabia',optimal: 15, laneCamper: 15, aggressive: 60, cautious: 10, politeness: 15, rightOvertakeAllowed: true },
 };
 
 /** All configurable settings with their defaults */
@@ -29,6 +29,7 @@ function defaultConfig() {
     mixLanecamper: 20,
     mixAggressive: 25,
     mixCautious: 15,
+    politeness: 50,
     preset: '',
     // Advanced behavior profiles (null = use code defaults)
     profileOverrides: null,
@@ -65,6 +66,7 @@ function applyConfig(config, simulation) {
   simulation.behaviorMix.laneCamper = config.mixLanecamper;
   simulation.behaviorMix.aggressive = config.mixAggressive;
   simulation.behaviorMix.cautious = config.mixCautious;
+  simulation.politenessFactor = config.politeness / 50; // 0–100 slider → 0–2 multiplier
 
   // Vehicle mix
   simulation.vehicleMix.car = config.mixCars;
@@ -83,6 +85,7 @@ function applyConfig(config, simulation) {
   syncSlider('#mix-lanecamper', config.mixLanecamper, '%');
   syncSlider('#mix-aggressive', config.mixAggressive, '%');
   syncSlider('#mix-cautious', config.mixCautious, '%');
+  syncSlider('#politeness', config.politeness, '%');
 
   const presetEl = document.querySelector('#country-preset');
   if (presetEl) presetEl.value = config.preset;
@@ -197,6 +200,15 @@ export function setupUI(simulation, renderer) {
     { sel: '#mix-cautious', apply: (v) => { config.mixCautious = v; simulation.behaviorMix.cautious = v; } },
   ], () => simulation.updateVehicleBehaviors());
 
+  // Politeness slider
+  bindSlider('#politeness', (v) => {
+    set('politeness', v);
+    set('preset', '');
+    if ($('#country-preset')) $('#country-preset').value = '';
+    simulation.politenessFactor = v / 50; // 0–100 → 0–2 multiplier
+    simulation.updatePoliteness();
+  });
+
   // Vehicle mix group
   setupLinkedGroup([
     { sel: '#mix-cars', apply: (v) => { config.mixCars = v; simulation.vehicleMix.car = v; } },
@@ -218,12 +230,14 @@ export function setupUI(simulation, renderer) {
       config.mixLanecamper = p.laneCamper;
       config.mixAggressive = p.aggressive;
       config.mixCautious = p.cautious;
+      config.politeness = p.politeness;
       saveConfig(config);
 
       simulation.behaviorMix.optimal = p.optimal;
       simulation.behaviorMix.laneCamper = p.laneCamper;
       simulation.behaviorMix.aggressive = p.aggressive;
       simulation.behaviorMix.cautious = p.cautious;
+      simulation.politenessFactor = p.politeness / 50;
 
       // Set right-overtake culture
       simulation.events.rightOvertakeAllowed = p.rightOvertakeAllowed;
@@ -236,8 +250,10 @@ export function setupUI(simulation, renderer) {
       syncSlider('#mix-lanecamper', p.laneCamper, '%');
       syncSlider('#mix-aggressive', p.aggressive, '%');
       syncSlider('#mix-cautious', p.cautious, '%');
+      syncSlider('#politeness', p.politeness, '%');
 
       simulation.updateVehicleBehaviors();
+      simulation.updatePoliteness();
     });
   }
 

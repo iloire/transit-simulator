@@ -28,6 +28,9 @@ export class Simulation {
       rightOvertakeAllowed: false, // whether right-side overtaking is culturally normal
     };
 
+    // Cultural politeness multiplier (0–1, applied on top of per-profile politeness)
+    this.politenessFactor = config.politenessFactor ?? 1.0;
+
     // Behavior mix (weights, will be normalized)
     this.behaviorMix = {
       optimal: 40,
@@ -90,10 +93,7 @@ export class Simulation {
   _spawnAt(x, lane) {
     const vehicleType = this._pickVehicleType();
     const behaviorKey = this._pickBehavior(vehicleType);
-    const behavior = createBehavior(
-      behaviorKey, vehicleType, this.road.speedLimit,
-      this.road.laneCount, this.truckSpeedLimit
-    );
+    const behavior = this._createBehavior(behaviorKey, vehicleType);
 
     // Trucks must spawn in allowed lanes
     if (behavior.maxLane !== null && lane < behavior.maxLane) {
@@ -237,15 +237,21 @@ export class Simulation {
     this.stats.density = this.vehicles.length / (this.road.roadLength / 1000);
   }
 
+  /** Create a behavior with the current politeness factor applied */
+  _createBehavior(presetKey, vehicleType) {
+    const behavior = createBehavior(
+      presetKey, vehicleType,
+      this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
+    );
+    behavior.politeness *= this.politenessFactor;
+    return behavior;
+  }
+
   /** Recalculate desired speeds for all vehicles after speed limit change */
   updateVehicleSpeeds() {
     for (const v of this.vehicles) {
-      // personalRatio captures the ±10% individual jitter
       const personalRatio = v.behavior.v0 > 0 ? v.personalV0 / v.behavior.v0 : 1;
-      const newBehavior = createBehavior(
-        v.behavior.presetKey, v.behavior.vehicleType,
-        this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
-      );
+      const newBehavior = this._createBehavior(v.behavior.presetKey, v.behavior.vehicleType);
       v.personalV0 = newBehavior.v0 * personalRatio;
       v.behavior = { ...newBehavior, v0: v.personalV0 };
     }
@@ -258,10 +264,7 @@ export class Simulation {
       if (newKey === v.behavior.presetKey) continue;
 
       const personalRatio = v.behavior.v0 > 0 ? v.personalV0 / v.behavior.v0 : 1;
-      const newBehavior = createBehavior(
-        newKey, v.type,
-        this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
-      );
+      const newBehavior = this._createBehavior(newKey, v.type);
       v.personalV0 = newBehavior.v0 * personalRatio;
       v.behavior = { ...newBehavior, v0: v.personalV0 };
       v.color = vehicleColor(v.type, newKey);
@@ -269,6 +272,17 @@ export class Simulation {
         1 - this.events.reactionJitter / 100,
         1 + this.events.reactionJitter / 100
       );
+    }
+  }
+
+  /** Update politeness for all existing vehicles */
+  updatePoliteness() {
+    for (const v of this.vehicles) {
+      const baseBehavior = createBehavior(
+        v.behavior.presetKey, v.behavior.vehicleType,
+        this.road.speedLimit, this.road.laneCount, this.truckSpeedLimit
+      );
+      v.behavior.politeness = baseBehavior.politeness * this.politenessFactor;
     }
   }
 
