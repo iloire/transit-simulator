@@ -82,9 +82,14 @@ export class Simulation {
     }
   }
 
-  _pickBehavior() {
+  _pickBehavior(vehicleType) {
     const keys = Object.keys(this.behaviorMix);
-    const weights = keys.map(k => this.behaviorMix[k]);
+    const weights = keys.map(k => {
+      let w = this.behaviorMix[k];
+      // Trucks are professional drivers — much less likely to be center hogs
+      if (vehicleType === 'truck' && k === 'centerHog') w *= 0.2;
+      return w;
+    });
     return weightedPick(keys, weights);
   }
 
@@ -95,8 +100,8 @@ export class Simulation {
   }
 
   _spawnAt(x, lane) {
-    const behaviorKey = this._pickBehavior();
     const vehicleType = this._pickVehicleType();
+    const behaviorKey = this._pickBehavior(vehicleType);
     const behavior = createBehavior(
       behaviorKey, vehicleType, this.road.speedLimit,
       this.road.laneCount, this.truckSpeedLimit
