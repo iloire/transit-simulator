@@ -64,7 +64,8 @@ export class Simulation {
   }
 
   _seed() {
-    const count = Math.floor(this.road.roadLength / 30) * this.road.laneCount;
+    const targetCount = Math.min(250, Math.round(this.spawnRate * this.road.roadLength / 8));
+    const count = Math.min(targetCount, Math.floor(this.road.roadLength / 30) * this.road.laneCount);
     for (let i = 0; i < count; i++) {
       const lane = i % this.road.laneCount;
       const spacing = this.road.roadLength / Math.ceil(count / this.road.laneCount);
@@ -188,9 +189,13 @@ export class Simulation {
       v.update(dt, leader, leftLaneSpeed);
     }
 
-    // Cap vehicle count
-    if (this.vehicles.length > 250) {
-      this.vehicles.splice(250);
+    // Target vehicle count derived from spawn rate
+    // spawnRate slider 1–40 (stored as /10 → 0.1–4.0), map to vehicle count
+    const targetCount = Math.min(250, Math.round(this.spawnRate * this.road.roadLength / 8));
+    // Gradually despawn excess (1 per tick to avoid visual pops)
+    if (this.vehicles.length > targetCount + 5) {
+      const idx = Math.floor(Math.random() * this.vehicles.length);
+      this.vehicles.splice(idx, 1);
     }
 
     // Flow measurement — count vehicles crossing the measurement point
