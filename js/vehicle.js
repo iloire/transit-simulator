@@ -127,12 +127,13 @@ export class Vehicle {
         if (targetLane > currentLane) {
           // Moving right: strong pull if not blocked in right lane
           const rightLeader = this._findLeader(targetLane, getLaneVehicles);
-          const canMaintainSpeed = !rightLeader || rightLeader.v > this.v * 0.85;
+          const canMaintainSpeed = !rightLeader || rightLeader.v > this.behavior.v0 * 0.85;
           incentive += laneBias * (canMaintainSpeed ? 1.5 : 0.3);
         } else {
-          // Moving left: only do it if current leader is actually slow
+          // Moving left: only do it if current leader is slower than our desired speed
+          // Use v0 (desired), not v (current) — car may have already slowed behind a truck
           const myLeaderHere = this._findLeader(currentLane, getLaneVehicles);
-          const isBlocked = myLeaderHere && myLeaderHere.v < this.v * 0.8;
+          const isBlocked = myLeaderHere && myLeaderHere.v < this.behavior.v0 * 0.8;
           if (!isBlocked) {
             // Not blocked — penalize moving left (stay right)
             incentive -= laneBias * 1.0;
