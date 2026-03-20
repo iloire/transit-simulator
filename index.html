@@ -72,7 +72,7 @@
       </div>
 
       <div class="control-row">
-        <label>Motorbikes <span class="help-tip">?<span class="tip-text">Small, fast vehicles with 60% more acceleration and higher top speed. Their small size makes them harder to see and more vulnerable in collisions.</span></span></label>
+        <label>Motorbikes <span class="help-tip">?<span class="tip-text">Small, fast vehicles with 60% more acceleration and higher top speed. Their small size lets them fit in tighter gaps.</span></span></label>
         <input type="range" id="mix-bikes" min="0" max="100" value="15" data-suffix="%">
         <span id="mix-bikes-val" class="val">15%</span>
       </div>
@@ -106,13 +106,13 @@
       </div>
 
       <div class="control-row">
-        <label>Center hog <span class="help-tip">?<span class="tip-text">Stick to the center lane and rarely move. Force faster drivers to overtake on the right, increasing accident risk. High values create frozen center lanes and phantom jams.</span></span></label>
+        <label>Center hog <span class="help-tip">?<span class="tip-text">Stick to the center lane and rarely move. Force faster drivers to overtake on the left, creating bottlenecks. High values create frozen center lanes and phantom jams.</span></span></label>
         <input type="range" id="mix-centerhog" min="0" max="100" value="20">
         <span id="mix-centerhog-val" class="val">20%</span>
       </div>
 
       <div class="control-row">
-        <label>Aggressive <span class="help-tip">?<span class="tip-text">Tailgaters. Very short following distance (0.5s), 20% over the speed limit, constant lane weaving with zero politeness. Highest crash rate by far.</span></span></label>
+        <label>Aggressive <span class="help-tip">?<span class="tip-text">Tailgaters. Very short following distance (0.5s), 20% over the speed limit, constant lane weaving with zero politeness. Will overtake on the right regardless of rules.</span></span></label>
         <input type="range" id="mix-aggressive" min="0" max="100" value="25">
         <span id="mix-aggressive-val" class="val">25%</span>
       </div>
@@ -149,19 +149,11 @@
           <div class="stat-value" id="stat-flow">—</div>
         </div>
         <div class="stat-item info">
-          <div class="stat-label">Avg Speed <span class="help-tip">?<span class="tip-text">Mean speed of all moving (non-crashed) vehicles. Compare this to the speed limit to gauge congestion severity.</span></span></div>
+          <div class="stat-label">Avg Speed <span class="help-tip">?<span class="tip-text">Mean speed of all vehicles. Compare this to the speed limit to gauge congestion severity.</span></span></div>
           <div class="stat-value" id="stat-speed">—</div>
         </div>
-        <div class="stat-item danger">
-          <div class="stat-label">Total Crashes <span class="help-tip">?<span class="tip-text">Cumulative collision count since the last reset. Collisions happen when vehicles overlap with a speed differential above 2 m/s.</span></span></div>
-          <div class="stat-value" id="stat-accidents">0</div>
-        </div>
-        <div class="stat-item danger">
-          <div class="stat-label">Active Crashes <span class="help-tip">?<span class="tip-text">Vehicles currently stopped from a crash, blocking their lane. Cleared automatically after 8–20 seconds, causing upstream jams in the meantime.</span></span></div>
-          <div class="stat-value" id="stat-active-crashes">0</div>
-        </div>
         <div class="stat-item">
-          <div class="stat-label">Vehicles <span class="help-tip">?<span class="tip-text">Total number of vehicles currently on the road, including crashed ones. Capped at 250 for performance.</span></span></div>
+          <div class="stat-label">Vehicles <span class="help-tip">?<span class="tip-text">Total number of vehicles currently on the road. Capped at 250 for performance.</span></span></div>
           <div class="stat-value" id="stat-vehicles">—</div>
         </div>
         <div class="stat-item">
@@ -253,63 +245,6 @@
     </div>
   </div>
 
-  <!-- Accidents & Events panel (separate from behavior tuning) -->
-  <div class="advanced-panel" id="events-panel">
-    <button class="advanced-toggle" id="events-toggle">Accidents &amp; Events ▾</button>
-    <div class="advanced-body" id="events-body">
-      <div class="events-grid">
-        <div class="param-group">
-          <h4>Collision Detection</h4>
-          <div class="control-row">
-            <label>Crash speed <span class="help-tip">?<span class="tip-text">Minimum speed difference (km/h) between two overlapping vehicles to trigger a crash. Lower = more sensitive. Typical fender-bender threshold: 10–20 km/h.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashSpeedThreshold" min="5" max="50" step="1" value="25">
-            <span class="val evt-val">25 km/h</span>
-          </div>
-          <div class="control-row">
-            <label>Crash rate <span class="help-tip">?<span class="tip-text">Base crashes per 1,000 dangerous encounters. Real-world is very low (~1–5). Aggressive drivers and right-overtaking multiply this rate automatically.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashRate" min="0" max="50" step="1" value="5">
-            <span class="val evt-val">5‰</span>
-          </div>
-          <div class="control-row">
-            <label>Lateral tol <span class="help-tip">?<span class="tip-text">Multiplier on combined vehicle width for lateral collision detection. Lower = vehicles must be more directly aligned. Higher = more forgiving overlap zone.</span></span></label>
-            <input type="range" class="evt-slider" data-event="lateralTolerance" min="0.3" max="1.5" step="0.05" value="0.8">
-            <span class="val evt-val">0.80</span>
-          </div>
-          <div class="control-row">
-            <label>Long tol <span class="help-tip">?<span class="tip-text">Multiplier on combined vehicle length for longitudinal collision detection. Lower = vehicles must overlap more to crash. Higher = crashes at wider gaps.</span></span></label>
-            <input type="range" class="evt-slider" data-event="longitudinalTolerance" min="0.1" max="1.0" step="0.05" value="0.4">
-            <span class="val evt-val">0.40</span>
-          </div>
-        </div>
-        <div class="param-group">
-          <h4>Incident Response</h4>
-          <div class="control-row">
-            <label>Clear time min <span class="help-tip">?<span class="tip-text">Minimum seconds before a crash is cleared and the lane unblocked. Shorter = less jam buildup per incident.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashClearMin" min="2" max="60" step="1" value="8">
-            <span class="val evt-val">8s</span>
-          </div>
-          <div class="control-row">
-            <label>Clear time max <span class="help-tip">?<span class="tip-text">Maximum seconds before a crash is cleared. Actual clear time is random between min and max. Longer crashes cause bigger jams.</span></span></label>
-            <input type="range" class="evt-slider" data-event="crashClearMax" min="5" max="120" step="1" value="20">
-            <span class="val evt-val">20s</span>
-          </div>
-        </div>
-        <div class="param-group">
-          <h4>Road Culture &amp; Events</h4>
-          <div class="control-row">
-            <label>Reaction jitter <span class="help-tip">?<span class="tip-text">Percentage of random variation in each driver's reaction time. Higher = more unpredictable drivers, more phantom waves. 0% = all drivers react identically.</span></span></label>
-            <input type="range" class="evt-slider" data-event="reactionJitter" min="0" max="50" step="1" value="10">
-            <span class="val evt-val">10%</span>
-          </div>
-          <div class="control-row">
-            <label>Breakdown <span class="help-tip">?<span class="tip-text">Chance per vehicle per minute of a random mechanical breakdown. Creates spontaneous lane blockages independent of collisions. 0 = disabled.</span></span></label>
-            <input type="range" class="evt-slider" data-event="breakdownChance" min="0" max="10" step="0.5" value="0">
-            <span class="val evt-val">0%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
   </div><!-- end bottom-section -->
 
   <script type="module" src="js/main.js"></script>

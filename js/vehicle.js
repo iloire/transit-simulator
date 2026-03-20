@@ -20,10 +20,6 @@ export class Vehicle {
     this.width = behavior.width;
     this.color = vehicleColor(this.type, behavior.presetKey);
 
-    this.crashed = false;
-    this.crashTimer = 0;
-    this.crashDuration = randomBetween(8, 20); // seconds before cleared
-
     // Add slight randomness to reaction time
     this.reactionJitter = randomBetween(1 - jitterPct, 1 + jitterPct);
   }
@@ -33,8 +29,6 @@ export class Vehicle {
     const { v0, T, aMax, b, s0, delta } = this.behavior;
     const v = this.v;
     const T_jittered = T * this.reactionJitter;
-
-    if (this.crashed) return 0;
 
     // Free road acceleration
     const aFree = aMax * (1 - Math.pow(v / v0, delta));
@@ -60,7 +54,6 @@ export class Vehicle {
 
   /** MOBIL: evaluate whether to change to an adjacent lane */
   evaluateLaneChange(getLaneVehicles, rightOvertakeAllowed = false) {
-    if (this.crashed) return null;
     if (this.lane !== this.targetLane) return null; // already changing
 
     const { politeness, aThreshold, bSafe, lanePreference, laneBias } = this.behavior;
@@ -199,13 +192,6 @@ export class Vehicle {
   }
 
   update(dt, leader, leftLaneSpeed = null) {
-    if (this.crashed) {
-      this.crashTimer += dt;
-      this.v = 0;
-      this.a = 0;
-      return;
-    }
-
     // Compute IDM acceleration
     this.a = clamp(this.computeIDM(leader), -8, this.behavior.aMax);
 

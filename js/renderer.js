@@ -17,8 +17,6 @@ export class Renderer {
       roadEdge: '#2a2a3e',
       laneMarking: '#e2c044',
       shoulder: '#141425',
-      crash: '#ff6b6b',
-      crashGlow: 'rgba(255, 107, 107, 0.3)',
     };
 
     this._resize();
@@ -155,42 +153,18 @@ export class Renderer {
     ctx.save();
     ctx.translate(screenX, screenY);
 
-    if (v.crashed) {
-      // Crash glow
-      const pulse = 0.5 + 0.5 * Math.sin(this.time * 8);
-      ctx.shadowColor = this.colors.crash;
-      ctx.shadowBlur = 15 * pulse;
-      ctx.fillStyle = this.colors.crash;
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-      ctx.shadowBlur = 0;
+    const radius = Math.min(w * 0.15, h * 0.3);
+    ctx.fillStyle = v.color;
 
-      // X mark
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      const s = Math.min(w, h) * 0.3;
-      ctx.beginPath();
-      ctx.moveTo(-s, -s);
-      ctx.lineTo(s, s);
-      ctx.moveTo(s, -s);
-      ctx.lineTo(-s, s);
-      ctx.stroke();
-    } else {
-      // Normal vehicle
-      const radius = Math.min(w * 0.15, h * 0.3);
-      ctx.fillStyle = v.color;
+    ctx.beginPath();
+    ctx.roundRect(-w / 2, -h / 2, w, h, radius);
+    ctx.fill();
 
-      ctx.beginPath();
-      ctx.roundRect(-w / 2, -h / 2, w, h, radius);
-      ctx.fill();
-
-      // Headlight
-      ctx.fillStyle = 'rgba(255, 255, 200, 0.8)';
-      const hlSize = Math.max(2, h * 0.2);
-      ctx.fillRect(w / 2 - hlSize, -h * 0.25, hlSize, h * 0.15);
-      ctx.fillRect(w / 2 - hlSize, h * 0.1, hlSize, h * 0.15);
-
-      // No separate indicator needed — body color represents behavior
-    }
+    // Headlight
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.8)';
+    const hlSize = Math.max(2, h * 0.2);
+    ctx.fillRect(w / 2 - hlSize, -h * 0.25, hlSize, h * 0.15);
+    ctx.fillRect(w / 2 - hlSize, h * 0.1, hlSize, h * 0.15);
 
     ctx.restore();
   }
@@ -227,8 +201,8 @@ export class Renderer {
     const y = barY + barH / 2;
     const items = [
       { label: 'Flow', value: Math.round(stats.flowRate).toLocaleString(), color: '#2ecc71' },
-      { label: 'Speed', value: Math.round(stats.avgSpeed) + '', color: '#3498db' },
-      { label: 'Crashes', value: stats.totalAccidents + '', color: '#ff6b6b' },
+      { label: 'Speed', value: Math.round(stats.avgSpeed) + ' km/h', color: '#3498db' },
+      { label: 'Density', value: Math.round(stats.density) + '/km', color: '#e2c044' },
     ];
     const spacing = W / items.length;
     items.forEach((item, i) => {

@@ -24,19 +24,9 @@ export class Simulation {
 
     // Tunable event parameters
     this.events = {
-      crashSpeedThreshold: 25,    // km/h — min speed diff to trigger crash
-      crashRate: 5,               // crashes per 1,000 dangerous encounters (0.5% per encounter)
-      crashClearMin: 8,           // seconds — min time to clear a crash
-      crashClearMax: 20,          // seconds — max time to clear a crash
-      lateralTolerance: 0.8,      // multiplier on combined width for lateral overlap
-      longitudinalTolerance: 0.4, // multiplier on combined length for longitudinal overlap
       reactionJitter: 10,         // % variation in driver reaction time (+/-)
-      breakdownChance: 0,         // per-vehicle-per-minute chance of random breakdown (%)
       rightOvertakeAllowed: false, // whether right-side overtaking is culturally normal
     };
-
-    // Track active dangerous encounters so we only roll once per pair
-    this._activeEncounters = new Set();
 
     // Behavior mix (weights, will be normalized)
     this.behaviorMix = {
@@ -57,8 +47,6 @@ export class Simulation {
     this.stats = {
       flowRate: 0,
       avgSpeed: 0,
-      accidentCount: 0,
-      totalAccidents: 0,
       vehicleCount: 0,
       density: 0,
     };
@@ -174,7 +162,6 @@ export class Simulation {
 
     // MOBIL lane changes
     for (const v of this.vehicles) {
-      if (v.crashed) continue;
       const newLane = v.evaluateLaneChange(getLaneVehicles, this.events.rightOvertakeAllowed);
       if (newLane !== null) {
         v.startLaneChange(newLane);
@@ -185,33 +172,19 @@ export class Simulation {
     for (const v of this.vehicles) {
       const leader = v._findLeader(v.effectiveLane, getLaneVehicles);
       let leftLaneSpeed = null;
-      if (!this.events.rightOvertakeAllowed && v.effectiveLane > 0 && !v.crashed) {
+      if (!this.events.rightOvertakeAllowed && v.effectiveLane > 0) {
         leftLaneSpeed = this._getNearbySpeeds(v, v.effectiveLane - 1, getLaneVehicles);
       }
       v.update(dt, leader, leftLaneSpeed);
     }
 
-    // Collision detection
-    this._detectCollisions();
-
-    // Random breakdowns
-    this._processBreakdowns(dt);
-
-    // Remove cleared crashes
-    this.vehicles = this.vehicles.filter(v => {
-      if (v.crashed && v.crashTimer > v.crashDuration) return false;
-      return true;
-    });
-
     // Cap vehicle count
     if (this.vehicles.length > 250) {
-      // Remove vehicles furthest from camera (just oldest non-crashed)
       this.vehicles.splice(250);
     }
 
     // Flow measurement — count vehicles crossing the measurement point
     for (const v of this.vehicles) {
-      if (v.crashed) continue;
       const prevX = this.road.wrapX(v.x - v.v * dt);
       const mp = this._flowMeasurePoint;
       // Check if vehicle crossed the measurement point this tick (handling wrap)
@@ -230,85 +203,12 @@ export class Simulation {
     this._updateStats();
   }
 
-  _detectCollisions() {
-    const { crashSpeedThreshold, crashRate, lateralTolerance, longitudinalTolerance } = this.events;
-    const currentEncounters = new Set();
-
-    for (let i = 0; i < this.vehicles.length; i++) {
-      const a = this.vehicles[i];
-      if (a.crashed) continue;
-
-      for (let j = i + 1; j < this.vehicles.length; j++) {
-        const b = this.vehicles[j];
-        if (b.crashed) continue;
-
-        // Check lateral overlap using actual Y positions
-        const lateralDist = Math.abs(a.effectiveY - b.effectiveY);
-        const lateralThreshold = (a.width + b.width) / 2 * lateralTolerance;
-        if (lateralDist > lateralThreshold) continue;
-
-        // Longitudinal overlap
-        const dist = Math.abs(this.road.distAhead(a.x, b.x));
-        const longThreshold = (a.length + b.length) / 2 * longitudinalTolerance;
-        if (dist > longThreshold) continue;
-
-        // Speed differential check
-        const speedDiff = Math.abs(a.v - b.v);
-        if (speedDiff < crashSpeedThreshold / 3.6) continue;
-
-        // This is a dangerous encounter — track it
-        const pairKey = a.id < b.id ? `${a.id}:${b.id}` : `${b.id}:${a.id}`;
-        currentEncounters.add(pairKey);
-
-        // Only roll the dice once when the encounter first begins
-        if (this._activeEncounters.has(pairKey)) continue;
-
-        // Compute effective crash rate based on driver behavior
-        let effectiveRate = crashRate;
-
-        // Aggressive drivers have much higher crash rates
-        // (low politeness, low time headway = reckless)
-        const minPoliteness = Math.min(a.behavior.politeness, b.behavior.politeness);
-        const minHeadway = Math.min(a.behavior.T, b.behavior.T);
-        if (minPoliteness <= 0.05) effectiveRate *= 8;       // zero-politeness drivers
-        else if (minPoliteness < 0.2) effectiveRate *= 3;    // low politeness
-        if (minHeadway < 0.6) effectiveRate *= 4;            // extreme tailgaters
-        else if (minHeadway < 1.0) effectiveRate *= 2;       // close followers
-
-        // Right-side overtaking risk (faster vehicle in a higher lane index)
-        const aLane = a.effectiveLane;
-        const bLane = b.effectiveLane;
-        const isRightOvertake = (a.v > b.v && aLane > bLane) || (b.v > a.v && bLane > aLane);
-        if (isRightOvertake) {
-          // More dangerous when it's not culturally expected
-          effectiveRate *= this.events.rightOvertakeAllowed ? 2 : 5;
-        }
-
-        // New encounter — roll against effective crashRate per 1,000
-        if (Math.random() * 1000 >= effectiveRate) continue;
-
-        a.crashed = true;
-        b.crashed = true;
-        a.v = 0;
-        b.v = 0;
-        a.crashDuration = randomBetween(this.events.crashClearMin, this.events.crashClearMax);
-        b.crashDuration = a.crashDuration;
-        this.stats.totalAccidents++;
-      }
-    }
-
-    // Update active encounters — remove pairs that are no longer overlapping
-    this._activeEncounters = currentEncounters;
-  }
-
   /** Get the minimum speed of nearby vehicles in a given lane (within ~60m) */
   _getNearbySpeeds(vehicle, lane, getLaneVehicles) {
     const vehicles = getLaneVehicles(lane);
     let minSpeed = Infinity;
     let found = false;
     for (const v of vehicles) {
-      if (v.crashed) continue;
-      // Check vehicles roughly alongside us (within ~60m ahead or behind)
       const distAhead = this.road.distAhead(vehicle.x, v.x);
       const absDist = Math.abs(distAhead);
       if (absDist < 60) {
@@ -319,39 +219,20 @@ export class Simulation {
     return found ? minSpeed : null;
   }
 
-  _processBreakdowns(dt) {
-    if (this.events.breakdownChance <= 0) return;
-    // Convert per-minute chance to per-tick probability
-    const pPerTick = 1 - Math.pow(1 - this.events.breakdownChance / 100, dt / 60);
-    for (const v of this.vehicles) {
-      if (v.crashed) continue;
-      if (Math.random() < pPerTick) {
-        v.crashed = true;
-        v.v = 0;
-        v.crashDuration = randomBetween(this.events.crashClearMin, this.events.crashClearMax);
-        this.stats.totalAccidents++;
-      }
-    }
-  }
-
   _updateStats() {
-    const active = this.vehicles.filter(v => !v.crashed);
     this.stats.vehicleCount = this.vehicles.length;
-    this.stats.accidentCount = this.vehicles.filter(v => v.crashed).length;
-    this.stats.avgSpeed = active.length > 0
-      ? active.reduce((s, v) => s + v.v, 0) / active.length * 3.6 // m/s to km/h
+    this.stats.avgSpeed = this.vehicles.length > 0
+      ? this.vehicles.reduce((s, v) => s + v.v, 0) / this.vehicles.length * 3.6
       : 0;
-    this.stats.density = this.vehicles.length / (this.road.roadLength / 1000); // vehicles per km
+    this.stats.density = this.vehicles.length / (this.road.roadLength / 1000);
   }
 
   reset() {
     this.vehicles = [];
     this.time = 0;
     this.spawnTimer = 0;
-    this.stats.totalAccidents = 0;
     this._flowCounter = 0;
     this._flowTimer = 0;
-    this._activeEncounters = new Set();
     this._seed();
   }
 }

@@ -271,8 +271,6 @@ export function setupUI(simulation, renderer) {
   setInterval(() => {
     updateStat('#stat-flow', Math.round(simulation.stats.flowRate).toLocaleString() + ' veh/hr');
     updateStat('#stat-speed', Math.round(simulation.stats.avgSpeed) + ' km/h');
-    updateStat('#stat-accidents', simulation.stats.totalAccidents.toString());
-    updateStat('#stat-active-crashes', simulation.stats.accidentCount.toString());
     updateStat('#stat-vehicles', simulation.stats.vehicleCount.toString());
     updateStat('#stat-density', Math.round(simulation.stats.density) + ' veh/km');
     updateStat('#stat-time', formatTime(simulation.time));
@@ -281,8 +279,8 @@ export function setupUI(simulation, renderer) {
   // Advanced behavior panel
   setupAdvancedPanel($, config, saveConfig);
 
-  // Event parameter sliders
-  setupEventSliders(simulation, config, saveConfig);
+  // Right-overtake toggle (now in behavior section)
+  setupRightOvertakeToggle(simulation, config, saveConfig);
 }
 
 function bindSlider(selector, onChange) {
@@ -429,59 +427,13 @@ function setupAdvancedPanel($, config, saveConfig) {
   loadProfileToUI(activeProfile);
 }
 
-/** Wire up the Accidents & Events panel toggle and sliders */
-function setupEventSliders(simulation, config, saveConfig) {
-  const toggle = document.querySelector('#events-toggle');
-  const body = document.querySelector('#events-body');
-  if (toggle && body) {
-    toggle.addEventListener('click', () => {
-      const open = body.classList.toggle('open');
-      toggle.textContent = open ? 'Accidents & Events ▴' : 'Accidents & Events ▾';
-    });
-  }
-
+/** Wire up the right-overtake toggle */
+function setupRightOvertakeToggle(simulation, config, saveConfig) {
   // Restore saved event overrides
   if (config.eventOverrides) {
     Object.assign(simulation.events, config.eventOverrides);
   }
 
-  const evtSliders = document.querySelectorAll('.evt-slider');
-
-  const evtUnits = {
-    crashSpeedThreshold: { suffix: ' km/h', decimals: 0 },
-    crashRate:           { suffix: '‰', decimals: 0 },
-    crashClearMin:       { suffix: 's', decimals: 0 },
-    crashClearMax:       { suffix: 's', decimals: 0 },
-    lateralTolerance:    { suffix: '', decimals: 2 },
-    longitudinalTolerance: { suffix: '', decimals: 2 },
-    reactionJitter:      { suffix: '%', decimals: 0 },
-    breakdownChance:     { suffix: '%', decimals: 1 },
-  };
-
-  evtSliders.forEach(sl => {
-    const key = sl.dataset.event;
-
-    // Initialize slider from (possibly restored) simulation values
-    sl.value = simulation.events[key];
-    const fmt = evtUnits[key];
-    const valEl = sl.nextElementSibling;
-    if (valEl && fmt) {
-      valEl.textContent = Number(simulation.events[key]).toFixed(fmt.decimals) + fmt.suffix;
-    }
-
-    sl.addEventListener('input', () => {
-      const val = parseFloat(sl.value);
-      simulation.events[key] = val;
-      if (valEl && fmt) {
-        valEl.textContent = val.toFixed(fmt.decimals) + fmt.suffix;
-      }
-      // Persist
-      config.eventOverrides = { ...simulation.events };
-      saveConfig(config);
-    });
-  });
-
-  // Right-overtake toggle
   const rightOvertakeToggle = document.querySelector('#evt-right-overtake');
   if (rightOvertakeToggle) {
     rightOvertakeToggle.checked = simulation.events.rightOvertakeAllowed;
