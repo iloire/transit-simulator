@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "npx serve ."
+    "start": "echo '\\n  Serving at http://localhost:3000\\n' && python3 -u -m http.server 3000",
+    "dev": "echo '\\n  Serving at http://localhost:3000\\n' && python3 -u -m http.server 3000"
   }
 }
