@@ -2,6 +2,10 @@
 
 A real-time traffic simulation that models multi-lane highway dynamics with realistic driver behaviors. Watch how different driving cultures, vehicle mixes, and road configurations affect traffic flow — from smooth cruising to phantom traffic jams.
 
+**[Live Demo](https://iloire.github.io/transit-simulator/)**
+
+![Transit Simulator screenshot — a 5-lane highway at 172 veh/km with cars, trucks and motorbikes weaving between lanes](screenshots/v1.png)
+
 ## Features
 
 - **Realistic physics** — Car-following via the Intelligent Driver Model (IDM) and lane-changing via MOBIL
